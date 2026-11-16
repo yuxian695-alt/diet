@@ -478,8 +478,6 @@ function daySchedule(p,wd){
  let l=best(up15(Math.max(b.t+150,660)),840,30,750,15);
  if(l==null)l=best(Math.max(b.t+60,630),900,20,750,5);
  if(l==null)l=nextFree(Math.max(b.t+90,660),15);
- let merged=false;
- if(l-b.t<120){merged=true;notes.push(`早餐和午饭只隔 ${l-b.t} 分钟（中午 ${cls.filter(c=>c.s<840&&c.e>690).map(c=>hm(c.s)+"–"+hm(c.e)).join("、")||""} 有课），合成一顿早午餐，${hm(b.t)} 吃`);l=b.t}
  // 晚餐
  let d=Math.max(toMin(p.dinner)??1110,(pres?pres[1]:0)+20);d=nextFree(d,30);
  // 加餐
@@ -487,8 +485,8 @@ function daySchedule(p,wd){
  if(sn==null)sn=nextFree(Math.max(l+150,870),10);
  if(sn>d-60)sn=Math.max(l+120,d-120);
  const slots=[];
- if(!merged)slots.push({idx:0,slot:"早",t:b.t,loc:b.loc,grab:!!b.grab});
- slots.push({idx:1,slot:"午",t:l,loc:loc(l)==="school"||(merged&&b.grab)?"school":"home",grab:merged&&!!b.grab,brunch:merged});
+ slots.push({idx:0,slot:"早",t:b.t,loc:b.loc,grab:!!b.grab});
+ slots.push({idx:1,slot:"午",t:l,loc:loc(l)});
  slots.push({idx:2,slot:"加",t:sn,loc:loc(sn)});
  slots.push({idx:3,slot:"晚",t:d,loc:loc(d)});
  slots.forEach(x=>{if(x.loc==="school"&&!x.grab&&!notes.some(n=>n.includes(hm(x.t))))notes.push(`${hm(x.t)} ${x.brunch?"早午餐":x.slot==="加"?"加餐":x.slot+"餐"}在学校吃 → ${p.mw?"可以用便利店微波炉":"只排能带走、冷着吃的"}`)});
@@ -531,8 +529,15 @@ function applyEdits(items,p,dateStr,idx,slot,opt){
  const drep=ed.rep||{};
  out=out.map(it=>Array.isArray(it)&&drep[it[0]]&&F[drep[it[0]]]?convertItem(it,drep[it[0]]):it);
  const rm=ed.rm||[];
- out=out.filter(it=>!(Array.isArray(it)&&rm.includes(it[0])));
+ out=out.map((it,i)=>Array.isArray(it)?it:Object.assign({},it,{_k:"c"+i}));
+ out=out.filter(it=>!(Array.isArray(it)?rm.includes(it[0]):rm.includes(it._k)));
  ((pr.add||{})[slot]||[]).filter(([k])=>!(ed.rmAdd||[]).includes(k)).concat(ed.add||[]).forEach(([k,g])=>{if(F[k])out.push([k,g,1])});
+ const eg=ed.g||{};
+ out=out.map(it=>{
+  if(Array.isArray(it)){return eg[it[0]]!=null?[it[0],+eg[it[0]],1]:it}
+  if(eg[it._k]!=null&&it.g>0){const r=eg[it._k]/it.g;return Object.assign({},it,{g:+eg[it._k],kcal:it.kcal*r,p:it.p*r,c:it.c*r,f:it.f*r,fi:it.fi*r,_set:1})}
+  return it;
+ });
  return out;
 }
 /* 某个人某天的完整计划 */
@@ -691,7 +696,8 @@ function viewToday(){
  const nMain=plan.meals.filter(m=>m.idx<20).length;
  if(L.n!==nMain&&(isToday||d<todayStr())){S.log[p.id]=S.log[p.id]||{};S.log[p.id][d]=Object.assign({e:{}},L,{n:nMain})}
  const st=streak(p);
- const tot=sumItems(plan.meals.filter(m=>!m.out).flatMap(m=>m.items));
+ const planTot=sumItems(plan.meals.filter(m=>!m.out).flatMap(m=>m.items));
+ const tot=sumItems(plan.meals.filter(m=>(getLog(p,d).e||{})[m.idx]===1).flatMap(m=>m.items));
  const done=Object.values(L.e||{}).filter(v=>v===1).length;
  let h=`<div class="row between" style="margin-top:6px"><div class="sub" style="font-weight:600;font-size:13px;color:var(--mute)">${parseD(d).getMonth()+1}月${parseD(d).getDate()}日 ${DAYN[wd]}${plan.train?" · 训练日":""}</div>
   ${isToday?"":`<button class="tbtn" data-act="today">回到今天</button>`}</div>
@@ -712,7 +718,7 @@ function viewToday(){
    <div class="lg"><div class="k" style="color:var(--fib)">膳食纤维</div><div class="v">${Math.round(tot[4])}<span> / ${plan.T.fi} g</span></div></div>
   </div></div>
   <div class="minis">${[["碳水",tot[2],plan.T.c,"var(--carb)"],["脂肪",tot[3],plan.T.f,"var(--fat)"]].map(([n,v,t,c])=>`<div class="mini"><div class="t"><span>${n}</span><b>${Math.round(v)} / ${t} g</b></div><div class="tr"><div class="fl" style="width:${clamp(v/t*100,0,100)}%;background:${c}"></div></div></div>`).join("")}</div>
-  ${plan.meals.some(m=>m.out)?`<div class="small muted" style="margin-top:8px">外面吃的那顿不算在里面。</div>`:""}</div>`;
+  <div class="small muted" style="margin-top:10px">圆环只算你点了“吃了”的。按计划全吃完是 ${Math.round(planTot[0])} kcal、蛋白质 ${Math.round(planTot[1])} g。没吃的那顿就点“没吃”，不会补到别的顿。</div></div>`;
  // 安排
  const tl=[];
  plan.sch.cls.forEach(c=>tl.push([c.s,`<div class="tli cls"><span class="tm">${hm(c.s)}</span><span>${esc(c.n||"上课")} · 到 ${hm(c.e)}</span></div>`]));
@@ -732,15 +738,15 @@ function viewToday(){
   const meal=AM[m.id]||M[m.id]; if(!meal)return;
   const n=sumItems(m.items); const sl=m.sl||{};
   const stt=(L.e||{})[m.idx];
-  h+=`<div class="mcard ${stt===1?"eaten":""}"><div class="mhead"><div style="flex:1;min-width:0"><div class="meta">${mealLabel(m)} · ${esc(m.time)} · ${sl.loc==="school"?AWAY:"在家"}</div>
+  h+=`<div class="mcard ${stt===1||stt===0?"eaten":""}"><div class="mhead"><div style="flex:1;min-width:0"><div class="meta">${mealLabel(m)} · ${esc(m.time)} · ${sl.loc==="school"?AWAY:"在家"}</div>
    <div class="mt">${esc(meal.n)}</div>
-   <div>${sl.grab?'<span class="tag w">带走 · 不用加热</span>':""}${meal.t.includes("pre")?'<span class="tag">提前做好</span>':""}${m.auto?'<span class="tag">按时间地点调整</span>':""}${m.out?'<span class="tag w">外面吃</span>':""}${m.idx>=20?'<span class="tag w">补足热量</span>':""}</div></div>
-   ${m.idx<20?`<button class="cc ${stt===1?"on":""}" aria-label="吃了" data-act="${stt===1?"uneat":"eat"}" data-i="${m.idx}">${stt===1?'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':""}</button>`:""}</div>`;
+   <div>${sl.grab?'<span class="tag w">带走 · 不用加热</span>':""}${meal.t.includes("pre")?'<span class="tag">提前做好</span>':""}${m.auto?'<span class="tag">按时间地点调整</span>':""}${m.out?'<span class="tag w">外面吃</span>':""}${stt===0?'<span class="tag w">没吃</span>':""}${m.idx>=20?'<span class="tag w">补足热量</span>':""}</div></div>
+   ${true?`<button class="cc ${stt===1?"on":""}" aria-label="吃了" data-act="${stt===1?"uneat":"eat"}" data-i="${m.idx}">${stt===1?'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':""}</button>`:""}</div>`;
   if(m.out){
    h+=`<div class="how"><div class="ok">这顿预算约 <b>${Math.round(n[0])} kcal</b>，蛋白质至少 <b>${Math.round(n[1])} g</b>。好选择：국밥 或 순두부찌개（饭少吃一点）、닭가슴살 샐러드、회덮밥、샤브샤브；少点炸物和甜饮料。</div></div>`;
   }else{
-   h+=`<div class="ilist">${m.items.map(it=>{const [a,b]=fmtItem(it);const k=Array.isArray(it)?it[0]:"";const can=k&&m.idx<20;
-    return `<div class="irow" ${can?`data-act="iact" data-i="${m.idx}" data-k="${k}" data-s="${esc(sl.slot)}" data-f="${it[2]?1:0}"`:""}><span>${esc(a)}${it[2]?' <span class="tag">你加的</span>':""}</span><span class="g">${b}${can?'<span class="chev">›</span>':""}</span></div>`}).join("")}</div>`;
+   h+=`<div class="ilist">${m.items.map(it=>{const [a,b]=fmtItem(it);const k=Array.isArray(it)?it[0]:(it._k||"");const can=k&&m.idx<20;const edm=ed[m.idx]||{};const added=Array.isArray(it)&&((edm.add||[]).some(x=>x[0]===k)||(((S.prefs[p.id]||{}).add||{})[sl.slot]||[]).some(x=>x[0]===k));const setg=edm.g&&edm.g[k]!=null;
+    return `<div class="irow" ${can?`data-act="iact" data-i="${m.idx}" data-k="${k}" data-s="${esc(sl.slot)}" data-f="${added?1:0}"`:""}><span>${esc(a)}${added?' <span class="tag">你加的</span>':setg?' <span class="tag">已改克数</span>':""}</span><span class="g">${b}${can?'<span class="chev">›</span>':""}</span></div>`}).join("")}</div>`;
   }
   h+=`<div class="mfoot"><span class="macro"><b>${Math.round(n[0])}</b> kcal · 蛋白 <b>${Math.round(n[1])}</b>g · 碳水 ${Math.round(n[2])}g · 脂肪 ${Math.round(n[3])}g</span>
    ${m.idx<20?`<span class="mbtns"><button class="ibtn" aria-label="加食物" data-act="iadd" data-i="${m.idx}" data-s="${esc(sl.slot)}">+</button><button class="ibtn" aria-label="更多" data-act="mmore" data-i="${m.idx}" style="font-size:15px;letter-spacing:1px">•••</button></span>`:""}</div>`;
@@ -916,22 +922,36 @@ function renderAnalysis(a){
   (r.ingredients||[]).map(x=>`<tr><td>${esc(x.name_zh)} <span class="small muted">${esc(x.name_ko||"")}</span>${x.note?`<div class="small muted">${esc(x.note)}</div>`:""}</td><td class="n">${esc(x.grams)}g</td><td class="n">${Math.round(x.kcal||0)}</td><td class="small">${esc(x.where||"")}${x.name_ko?` <a class="cp" href="https://www.coupang.com/np/search?q=${encodeURIComponent(x.name_ko)}" target="_blank" rel="noopener">↗</a>`:""}</td></tr>`).join("")+`</table></div>`;
  if(r.steps&&r.steps.length)h+=`<div class="card"><b>做法</b><ol class="steps small">${r.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol></div>`;
  h+=`<div class="card"><b>对照你的目标</b><div class="small">${esc(r.fit||"")}</div>${r.adjust?`<div class="ok">${esc(r.adjust)}</div>`:""}</div>`;
- h+=`<div class="row" style="gap:8px"><button class="btn" data-act="savecustom">加入我的菜库</button></div><div class="small muted" style="margin-top:6px">加入后，在“今天”里点“自己选”就能把某一餐换成它。</div>`;
+ const sel=view.aslot||(["早","午","加","晚"].includes(r.slot)?r.slot:"午");
+ h+=`<div class="card"><div style="font-weight:600">这是哪一顿吃的？</div><div class="row wrap" style="gap:6px;margin-top:8px">${["早","午","晚","加"].map(x=>`<span class="chip ${x===sel?"on":""}" data-act="aslot" data-s="${x}">${SLOTN[x]}</span>`).join("")}</div>
+  <button class="btn" style="width:100%;margin-top:12px" data-act="savetoday">记为今天的${SLOTN[sel]}（已吃）</button>
+  <button class="btn ghost" style="width:100%;margin-top:8px" data-act="savecustom">只加入我的菜库</button>
+  <div class="small muted" style="margin-top:8px">加入菜库后，任何一顿都能换成它；每样食物的克数也能点开改。</div></div>`;
  return h;
 }
 function readAnalysis(){
  const t=document.getElementById("apaste"); view.apaste=t?t.value:"";
- try{const r=parseJSONLoose(view.apaste);if(!r.name||!r.ingredients)throw {message:"这段不是饮食分析的结果，检查一下复制的内容。"};view.anal={result:r}}
+ view.aslot=null;try{const r=parseJSONLoose(view.apaste);if(!r.name||!r.ingredients)throw {message:"这段不是饮食分析的结果，检查一下复制的内容。"};view.anal={result:r}}
  catch(e){view.anal={error:e.message||"读取失败"}}
  render(); setTimeout(()=>{const el=document.getElementById("aout");if(el)el.scrollIntoView({behavior:"smooth",block:"start"})},50);
 }
 function paintAnal(){const el=document.getElementById("aout");if(el)el.innerHTML=renderAnalysis(view.anal)}
-function saveCustom(){
- const r=view.anal&&view.anal.result;if(!r)return;
+function saveCustom(quiet){
+ const r=view.anal&&view.anal.result;if(!r)return null;
+ if(view.anal.savedId&&S.custom[view.anal.savedId])return view.anal.savedId;
  const id="c_"+Date.now().toString(36);
- const slot=["早","午","加","晚"].includes(r.slot)?r.slot:"午";
+ const slot=view.aslot||(["早","午","加","晚"].includes(r.slot)?r.slot:"午");
  S.custom[id]={s:slot,n:r.name,t:[],custom:true,how:(r.steps||[]).join(" "),i:(r.ingredients||[]).map(x=>({n:x.name_zh,g:+x.grams||0,kcal:+x.kcal||0,p:+x.protein||0,c:+x.carbs||0,f:+x.fat||0,fi:+x.fiber||0}))};
- save(); toast("已加入菜库："+r.name);
+ view.anal.savedId=id; save(); if(!quiet)toast("已加入菜库："+r.name); return id;
+}
+function saveToday(){
+ const id=saveCustom(true); if(!id)return;
+ const p=prof(); const d=todayStr(); const slot=view.aslot||S.custom[id].s;
+ const idx={早:0,午:1,加:2,晚:3}[slot];
+ S.swaps[p.id]=S.swaps[p.id]||{};S.swaps[p.id][d]=Object.assign({},S.swaps[p.id][d],{[idx]:id});
+ const ed=((S.edits[p.id]||{})[d]||{});delete ed[idx];
+ S.log[p.id]=S.log[p.id]||{};const L=S.log[p.id][d]||{e:{}};L.e=L.e||{};L.e[idx]=1;S.log[p.id][d]=L;
+ save(); view.date=d; location.hash="today"; render(); toast(`已记为今天的${SLOTN[slot]}，克数可以点开改`);
 }
 
 /* ============ 我的 / 档案 ============ */
@@ -1019,13 +1039,18 @@ function openPick(idx){
  const p=prof(); const d=view.date; const AM=allMeals();
  const plan=dayPlan(p,d); const cur=plan.meals.find(m=>m.idx===idx); const sl=cur.sl; const slot=sl.slot;
  const flt=(FILTERS.find(x=>x[0]===view.pk.f)||FILTERS[0])[1];
- const list=Object.keys(AM).filter(k=>AM[k].s===slot&&k!=="boost"&&k!=="boost2"&&k!=="post"&&(!flt||AM[k].i.some(it=>Array.isArray(it)&&flt.includes(it[0]))))
-  .sort((a,b)=>(mealOk(AM[b],sl,{},p)?1:0)-(mealOk(AM[a],sl,{},p)?1:0));
- setModal(`<div class="modal" data-act="mclose"><div class="sheet" data-stop="1"><div class="grab"></div><div class="row between"><b>${mealLabel(cur)} ${cur.time} · ${sl.loc==="school"?AWAY:"在家"} · 换成</b><button class="tbtn" data-act="mclose">完成</button></div>
- <div class="small muted" style="margin:4px 0">想吃什么？按食材筛：</div>
- <div class="row wrap" style="gap:6px;margin-bottom:6px">${FILTERS.map(([n])=>`<span class="chip ${n===view.pk.f?"on":""}" data-act="pkf" data-f="${n}">${n}</span>`).join("")}</div>
- ${list.length?list.map(k=>{const n=sumItems(AM[k].i);const ok=mealOk(AM[k],sl,{},p);const why=ok?"":whyNot(AM[k],sl,p);return `<div class="card daybtn" data-act="choose" data-i="${idx}" data-id="${k}" style="${ok?"":"opacity:.55"}"><div><b>${esc(AM[k].n)}</b>${AM[k].custom?'<span class="tag">我的菜</span>':""}${AM[k].t.includes("cold")?'<span class="tag">冷吃也行</span>':""}${AM[k].t.includes("p")?'<span class="tag">可带走</span>':""}${why?`<span class="tag w">${why}</span>`:""}<div class="small muted">${AM[k].i.map(it=>fmtItem(it)[0]).join("、")}</div></div><div class="small muted" style="text-align:right">${Math.round(n[0])} kcal<br>蛋白 ${Math.round(n[1])}g</div></div>`}).join(""):'<div class="small muted">这一餐没有含这个食材的菜。可以关掉，在当前这顿里点“＋ 加食物”直接加。</div>'}
- <div class="small muted">分量会按你的目标自动调整（“我的菜”按原分量）。</div></div></div>`);
+ const has=k=>!flt||AM[k].i.some(it=>Array.isArray(it)&&flt.includes(it[0]));
+ const all=Object.keys(AM).filter(k=>!["boost","boost2","post"].includes(k)&&k!==cur.id);
+ const mine=all.filter(k=>AM[k].custom);
+ const same=all.filter(k=>!AM[k].custom&&AM[k].s===slot&&has(k)).sort((a,b)=>(mealOk(AM[b],sl,{},p)?1:0)-(mealOk(AM[a],sl,{},p)?1:0));
+ const other=all.filter(k=>!AM[k].custom&&AM[k].s!==slot&&has(k));
+ const card=k=>{const n=sumItems(AM[k].i);const ok=mealOk(AM[k],sl,{},p);const why=ok?"":whyNot(AM[k],sl,p);return `<div class="card daybtn" data-act="choose" data-i="${idx}" data-id="${k}"><div style="min-width:0"><b>${esc(AM[k].n)}</b> ${AM[k].custom?'<span class="tag">我的菜</span>':`<span class="tag" style="background:var(--card2);color:var(--mute)">${SLOTN[AM[k].s]||""}</span>`}${AM[k].t.includes("cold")?'<span class="tag">冷吃也行</span>':""}${why?`<span class="tag w">${why}</span>`:""}<div class="small muted">${AM[k].i.map(it=>fmtItem(it)[0]).join("、")}</div></div><div class="small muted" style="text-align:right;flex:none;margin-left:8px">${Math.round(n[0])} kcal<br>蛋白 ${Math.round(n[1])}g</div></div>`};
+ const sec=(t,ks)=>ks.length?`<div class="sec" style="margin-left:4px">${t}</div>${ks.map(card).join("")}`:"";
+ setModal(`<div class="modal" data-act="mclose"><div class="sheet" data-stop="1"><div class="grab"></div><div class="row between"><span class="stitle">${mealLabel(cur)} ${cur.time} 换成</span><button class="tbtn" data-act="mclose">完成</button></div>
+ <div class="row wrap" style="gap:6px;margin:10px 0 2px">${FILTERS.map(([n])=>`<span class="chip ${n===view.pk.f?"on":""}" data-act="pkf" data-f="${n}">${n}</span>`).join("")}</div>
+ ${sec("我的菜",mine)}${sec("常用在"+(SLOTN[slot]||"这一餐"),same)}${sec("其他餐的菜（也可以选）",other)}
+ ${!mine.length&&!same.length&&!other.length?'<div class="small muted" style="margin:12px 4px">没有含这个食材的菜。可以关掉，在这一顿里点“＋”直接加食物。</div>':""}
+ <div class="small muted" style="margin:10px 4px">换好后，每样食物的克数都可以点开自己改。</div></div></div>`);
 }
 function openFood(fp){
  view.fp=Object.assign({cat:fp.mode==="rep"&&F[fp.key]?F[fp.key][2]:"全部",q:"",sel:null,always:false},view.fp&&view.fp.mode===fp.mode&&view.fp.idx===fp.idx&&view.fp.key===fp.key?view.fp:{},fp);
@@ -1050,6 +1075,21 @@ function paintFood(){
  }
  setModal(`<div class="modal" data-act="mclose"><div class="sheet" data-stop="1"><div class="grab"></div><div class="row between"><b>${esc(title)}</b><button class="tbtn" data-act="mclose">完成</button></div>${body}</div></div>`);
  if(view._fpFocus){const el=document.getElementById("fpq");if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length)}}
+}
+function curItem(p,d,idx,k){const m=dayPlan(p,d).meals.find(x=>x.idx===idx);if(!m)return null;return m.items.find(it=>Array.isArray(it)?it[0]===k:it._k===k)||null}
+function openGram(idx,k){
+ const p=prof(),d=view.date;const it=curItem(p,d,idx,k);if(!it)return;
+ const arr=Array.isArray(it);const f=arr?F[k]:null;const nm=arr?f[0]:it.n;const g=Math.round(arr?it[1]:it.g);
+ const per=arr?[f[3],f[4]]:[it.g?it.kcal/it.g*100:0,it.g?it.p/it.g*100:0];
+ const isSet=(((S.edits[p.id]||{})[d]||{})[idx]||{}).g&&S.edits[p.id][d][idx].g[k]!=null;
+ const unit=arr&&f[9]?`<div class="small muted" style="margin-top:6px">1${f[10]} ≈ ${f[9]}g</div>`:"";
+ setModal(`<div class="modal" data-act="mclose"><div class="sheet" data-stop="1"><div class="grab"></div><div class="row between"><span class="stitle">${esc(nm)} 吃了多少</span><button class="tbtn" data-act="mclose">取消</button></div>
+ <div class="card"><div class="row" style="gap:8px;justify-content:center"><button class="ibtn" data-act="gstep" data-d="-10">−</button><input id="gIn" type="number" inputmode="decimal" value="${g}" style="width:120px;text-align:center;font-size:24px;font-weight:700"><span style="font-size:18px">g</span><button class="ibtn" data-act="gstep" data-d="10">+</button></div>
+ ${unit}<div class="small muted" style="margin-top:6px;text-align:center">每100g：${Math.round(per[0])} kcal · 蛋白 ${Math.round(per[1]*10)/10}g</div></div>
+ <button class="btn" style="width:100%" data-act="gsave" data-i="${idx}" data-k="${k}">保存</button>
+ ${isSet?`<button class="btn gray" style="width:100%;margin-top:8px" data-act="gauto" data-i="${idx}" data-k="${k}">改回自动分量</button>`:""}
+ <div class="small muted" style="margin:10px 4px">改过克数的食物不会再被自动调整。</div></div></div>`);
+ setTimeout(()=>{const i=document.getElementById("gIn");if(i){i.focus();i.select()}},50);
 }
 function edOf(p,d,idx){S.edits[p.id]=S.edits[p.id]||{};S.edits[p.id][d]=S.edits[p.id][d]||{};S.edits[p.id][d][idx]=S.edits[p.id][d][idx]||{};return S.edits[p.id][d][idx]}
 function openPrice(k){
@@ -1156,7 +1196,7 @@ document.addEventListener("click",e=>{
  else if(a==="busy")setMode(a,m=>{m.busy=!m.busy});
  else if(a==="train"){const cur=dayPlan(p,d).train;setMode(a,m=>{m.train=!cur})}
  else if(a==="out"){closeModal();setMode(a,m=>{const i=+el.dataset.i;m.out=m.out||[];m.out=m.out.includes(i)?m.out.filter(x=>x!==i):m.out.concat([i])})}
- else if(a==="eat"||a==="skip"||a==="uneat"){const i=+el.dataset.i;setLog(p,d,L=>{if(a==="uneat")delete L.e[i];else L.e[i]=a==="eat"?1:0});
+ else if(a==="eat"||a==="skip"||a==="uneat"){closeModal();const i=+el.dataset.i;setLog(p,d,L=>{if(a==="uneat")delete L.e[i];else L.e[i]=a==="eat"?1:0});
    if(a==="eat"){const st=streak(p);const pl=dayPlan(p,d);const L=getLog(p,d);const c=Object.values(L.e).filter(v=>v===1).length;
     toast(c>=pl.meals.filter(m=>m.idx<20).length?`今天全部完成 🎉 连续 ${st.n} 天`:`记下了，今天第 ${c} 顿`)}}
  else if(a==="reset"){closeModal();const i=+el.dataset.i;const ed=((S.edits[p.id]||{})[d]||{});delete ed[i];setSwap(i,null)}
@@ -1164,9 +1204,16 @@ document.addEventListener("click",e=>{
  else if(a==="pkf"){view.pk.f=el.dataset.f;openPick(view.pk.idx)}
  else if(a==="choose"){closeModal();setSwap(+el.dataset.i,el.dataset.id)}
  else if(a==="mclose"){closeModal();view.fp=null;if(view.imp&&!view.imp.busy)view.imp=null}
- else if(a==="iact"){const k=el.dataset.k;sheet(`${F[k]?F[k][0]:k}`,[{label:"换成别的食物",act:"irep",data:{i:el.dataset.i,k,s:el.dataset.s}},{label:"删掉",act:"irm",red:1,data:{i:el.dataset.i,k,f:el.dataset.f}}])}
+ else if(a==="iact"){const k=el.dataset.k,i=+el.dataset.i;const it=curItem(p,d,i,k);const nm=it?(Array.isArray(it)?F[k][0]:it.n):k;const g=it?Math.round(Array.isArray(it)?it[1]:it.g):0;
+   const acts=[{label:"改克数（吃了多少填多少）",act:"igram",data:{i,k}}];if(F[k])acts.push({label:"换成别的食物",act:"irep",data:{i,k,s:el.dataset.s}});acts.push({label:"删掉",act:"irm",red:1,data:{i,k,f:el.dataset.f}});
+   sheet(`${esc(nm)} · ${g}g`,acts)}
+ else if(a==="igram"){openGram(+el.dataset.i,el.dataset.k)}
+ else if(a==="gstep"){const inp=document.getElementById("gIn");inp.value=Math.max(0,(+inp.value||0)+(+el.dataset.d))}
+ else if(a==="gsave"){const v=parseFloat((document.getElementById("gIn")||{}).value);if(!(v>=0)){toast("填一个克数");return}const ed=edOf(p,d,+el.dataset.i);ed.g=Object.assign({},ed.g,{[el.dataset.k]:Math.round(v)});closeModal();save();render();toast(v===0?"记为 0g":"已改成 "+Math.round(v)+"g")}
+ else if(a==="gauto"){const ed=edOf(p,d,+el.dataset.i);if(ed.g)delete ed.g[el.dataset.k];closeModal();save();render();toast("改回自动分量")}
  else if(a==="mmore"){const i=+el.dataset.i;const pl=dayPlan(p,d);const m=pl.meals.find(x=>x.idx===i);const ed=((S.edits[p.id]||{})[d]||{})[i];const sw=((S.swaps[p.id]||{})[d]||{})[i];
-   const acts=[{label:"换一整顿",act:"pick",data:{i}},{label:m&&m.out?"改回在家吃":"这顿在外面吃",act:"out",data:{i}}];
+   const stt=(getLog(p,d).e||{})[i];
+   const acts=[{label:"换一整顿",act:"pick",data:{i}},{label:"＋ 加食物",act:"iadd",data:{i,s:m?m.sl.slot:""}},{label:stt===0?"取消“没吃”":"这顿没吃",act:stt===0?"uneat":"skip",data:{i}},{label:m&&m.out?"改回在家吃":"这顿在外面吃",act:"out",data:{i}}];
    if(sw||(ed&&Object.keys(ed).length))acts.push({label:"恢复原样",act:"reset",red:1,data:{i}});
    sheet(m?`${mealLabel(m)} · ${m.time}`:"",acts)}
  else if(a==="irep"){view.fp=null;openFood({mode:"rep",idx:+el.dataset.i,key:el.dataset.k,slot:el.dataset.s})}
@@ -1223,6 +1270,8 @@ document.addEventListener("click",e=>{
  }
  else if(a==="aclear"){view.apaste="";view.anal=null;render()}
  else if(a==="savecustom")saveCustom();
+ else if(a==="savetoday")saveToday();
+ else if(a==="aslot"){view.aslot=el.dataset.s;paintAnal()}
  else if(a==="prof"){S.active=el.dataset.id;save();render()}
  else if(a==="addprof"){const id="p"+Date.now().toString(36);S.profiles.push(ensureProfile({id,name:"新档案",sex:"f",age:20,h:160,w:52,act:"stu",goal:"maintain",train:[],classes:{0:[],1:[],2:[],3:[],4:[],5:[],6:[]}}));S.active=id;save();render()}
  else if(a==="delprof"){S.profiles=S.profiles.filter(x=>x.id!==p.id);S.active=S.profiles[0].id;save();render()}
