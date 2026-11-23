@@ -408,6 +408,12 @@ details.ocr summary{cursor:pointer;font-weight:700}
 details.ocr pre{white-space:pre-wrap;font-size:12px;max-height:180px;overflow:auto;background:var(--card2);padding:8px 10px;border-radius:8px;margin:8px 0 0}
 .toast-btn{margin-left:10px;border:0;border-radius:8px;padding:5px 10px;background:var(--sun);color:var(--sun-on);font-weight:800;font-size:13px;cursor:pointer}
 .chip-row{display:flex;flex-wrap:wrap;gap:4px 14px}
+.icon-btn[disabled]{opacity:.3;cursor:default}
+.icon-btn[disabled]:hover{background:transparent;color:var(--ink2)}
+@media (max-width:520px){.acts{gap:2px}.acts .icon-btn{width:36px;height:36px}}
+details.ocr .btn{margin-top:8px}
+.notice{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;justify-content:space-between;background:var(--mint);border:1px solid var(--mint2);border-radius:14px;padding:10px 14px;font-size:13.5px;color:var(--ink)}
+.notice .row{gap:6px}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none}
 .steps.help{margin:6px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:12px;font-size:14px;font-weight:700;z-index:70;max-width:calc(100% - 32px);box-shadow:0 10px 30px -10px rgba(0,0,0,.5);text-align:center}
@@ -423,6 +429,7 @@ details.ocr pre{white-space:pre-wrap;font-size:12px;max-height:180px;overflow:au
       <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><g fill="var(--green)"><circle cx="12" cy="7.4" r="3.9"/><circle cx="16.6" cy="12" r="3.9"/><circle cx="12" cy="16.6" r="3.9"/><circle cx="7.4" cy="12" r="3.9"/></g><circle cx="12" cy="12" r="2.1" fill="var(--sun)"/></svg></div>
       <div class="brand"><b>纯过日子生活管家</b><small>The little joys of everyday</small></div>
       <div class="acts">
+        <button class="icon-btn" id="undo-btn" data-a="undo" aria-label="撤回上一步" title="撤回上一步" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M9 14 4.5 9.5 9 5"/><path d="M4.5 9.5H15a5 5 0 0 1 0 10h-3"/></svg></button>
         <button class="icon-btn" data-a="search" aria-label="搜索" title="搜索"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
         <button class="btn sm gen" data-a="gen" title="按冰箱食材生成本周三餐" aria-label="一键生成本周三餐"><svg class="ic" viewBox="0 0 24 24"><path d="M11 3.5 12.7 8l4.5 1.7-4.5 1.7L11 16l-1.7-4.6L4.8 9.7 9.3 8z"/><path d="M18 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><span class="lbl-long">一键生成</span></button>
         <button class="icon-btn" data-a="backup" aria-label="备份与恢复" title="备份与恢复"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/></svg></button>
@@ -553,7 +560,7 @@ var TABS = [['home','生活首页','home'],['ledger','生活账本','wallet'],['
 
 /* ---------------- state ---------------- */
 var LS_KEY = 'chunguo-life-v1';
-var SECTIONS = ['settings','ledger','fridge','meals','todos','shop'];
+var SECTIONS = ['settings','ledger','fridge','meals','todos','shop','trash'];
 var S = null;
 var view = { tab:'home', month: monthOf(today()), mealStart: today(), mealDay: today(), mealSlot: defaultSlot(), fridgeFilter:'all', todoFilter:'today', editTodo:null, lgType:'out', lgCat:null, lgCur:null, pick:null, day: today() };
 function defaultSlot(){ var h = new Date().getHours(); return h < 10 ? 'b' : h < 14 ? 'l' : 'd'; }
@@ -567,7 +574,7 @@ function freshState(){
     settings:{ sample:false, saveGoal:500000, budgetCur:'KRW', showCur:'split', rate:DEFAULT_RATE, rateAt:'',
       cats:[{n:'房租水电',b:650000},{n:'买菜做饭',b:250000},{n:'外卖外食',b:200000},{n:'日用品',b:80000},{n:'交通出行',b:70000},{n:'其他',b:150000}],
       prefs:{ slots:['b','l','d'], maxTime:20, tags:['家常','快手'] }, stats:{} },
-    ledger:[], fridge:[], meals:{}, todos:[], shop:[] };
+    ledger:[], fridge:[], meals:{}, todos:[], shop:[], trash:[] };
 }
 function foodItem(name, qty, expire, extra){
   var c = FOODS[name] || ['🍽️','个',7,'冷藏'];
@@ -600,6 +607,7 @@ function sampleState(){
   s.todos = [ T('换床单',t), T('补充洗衣液',t), T('锻炼 20 分钟',t,true), T('整理餐桌',t,true), T('早点睡，不刷手机',t,false,'daily'),
     T('交水电费',addDays(t,2)), T('整理冰箱，看看快过期的',addDays(t,3),false,'weekly') ];
   s.shop = [ {id:uid(), n:'葱', a:2, u:'根', from:'番茄鸡蛋面', done:false}, {id:uid(), n:'香蕉', a:3, u:'根', from:'', done:false}, {id:uid(), n:'洗衣液', a:1, u:'瓶', from:'', done:false} ];
+  ['ledger','fridge','todos','shop'].forEach(function(k){ s[k].forEach(function(x){ x.ex = 1; }); });   // 示例数据打上记号
   s.settings.stats[ym] = { used:5, wasted:1 };
   return s;
 }
@@ -635,15 +643,80 @@ function normalize(x){
     return { id:String(i.id||uid()), t:String(i.t), d:String(i.d||today()).slice(0,10), done:!!i.done, doneAt:String(i.doneAt||''), rep: i.rep === 'daily' || i.rep === 'weekly' ? i.rep : '' }; });
   s.shop = (Array.isArray(o.shop) ? o.shop : []).filter(function(i){ return i && i.n; }).map(function(i){
     return { id:String(i.id||uid()), n:String(i.n), a: i.a != null ? num(i.a) : null, u:String(i.u||''), q:String(i.q||''), from:String(i.from||''), done:!!i.done }; });
+  ['ledger','fridge','todos','shop'].forEach(function(k){
+    var ex = {}; (Array.isArray(o[k]) ? o[k] : []).forEach(function(x){ if (x && x.ex && x.id) ex[x.id] = 1; });
+    s[k].forEach(function(x){ if (ex[x.id]) x.ex = 1; });
+  });
+  var tcut = addDays(today(), -30);
+  s.trash = (Array.isArray(o.trash) ? o.trash : []).filter(function(t){ return t && t.id && ['ledger','todo','shop'].indexOf(t.kind) >= 0 && isObj(t.item) && t.item.id && String(t.at || '') >= tcut; }).slice(0, 60);
   return s;
+}
+// 第二版示例账目的样子（那时还没有记号），清空示例时用来认出它们
+var SAMPLE_SIG = {'工资|2200000':1,'月租 월세|550000':1,'月初先存一笔|300000':1,'이마트 超市买菜|32800':1,'炸鸡外卖 배민|21000':1,'다이소 收纳盒|12000':1,'관리비 水电燃气|85000':1,'티머니 充值|30000':1,'咖啡|4500':1,'市场 蔬菜水果|18000':1,'淘宝 衣架|58':1,'理发|15000':1,'便利店饭团|3200':1,'쿠팡 鸡胸肉 面条|27400':1,'朋友生日礼物|199':1};
+function isSampleRec(r){ return !!(r.ex || SAMPLE_SIG[r.note + '|' + r.amount]); }
+function realOnly(arr){ return arr.some(function(x){ return x.ex; }) ? arr.filter(function(x){ return !x.ex; }) : []; }
+// 清空示例：留下自己记的账，其余回到空白
+function clearSample(){
+  var keep = { ledger: S.ledger.filter(function(r){ return !isSampleRec(r); }), fridge: realOnly(S.fridge), todos: realOnly(S.todos), shop: realOnly(S.shop) };
+  var st = S.settings, trash = S.trash;
+  S = freshState(); S.settings.prefs = st.prefs; S.settings.rate = st.rate; S.settings.rateAt = st.rateAt; S.settings.showCur = st.showCur;
+  S.ledger = keep.ledger; S.fridge = keep.fridge; S.todos = keep.todos; S.shop = keep.shop; S.trash = trash;
+  return keep.ledger.length;
+}
+// 合并两份数据：按 id 合在一起，谁都不丢
+function mergeData(cur, inc){
+  if (inc.settings.sample && realOnly(inc.ledger).length === 0 && !inc.ledger.some(function(r){ return !isSampleRec(r); })) return { s:cur, msg:'这份备份里只有示例数据，没有要合并的' };
+  var base = cur, other = inc;
+  if (cur.settings.sample){ base = inc; other = { ledger: cur.ledger.filter(function(r){ return !isSampleRec(r); }), fridge: realOnly(cur.fridge), todos: realOnly(cur.todos), shop: realOnly(cur.shop), trash: cur.trash, meals:{} }; }
+  else if (inc.settings.sample){ other = { ledger: inc.ledger.filter(function(r){ return !isSampleRec(r); }), fridge: realOnly(inc.fridge), todos: realOnly(inc.todos), shop: realOnly(inc.shop), trash: inc.trash, meals:{} }; }
+  var out = JSON.parse(JSON.stringify(base)), added = 0;
+  ['ledger','fridge','todos','shop','trash'].forEach(function(k){
+    var ids = {}; out[k].forEach(function(x){ ids[x.id] = 1; });
+    (other[k] || []).forEach(function(x){ if (!ids[x.id]){ out[k].push(x); ids[x.id] = 1; if (k === 'ledger') added++; } });
+  });
+  Object.keys(other.meals || {}).forEach(function(d){ out.meals[d] = Object.assign({}, other.meals[d], out.meals[d] || {}); });
+  out = normalize(out);
+  return { s:out, msg:'合并好了，账本现在一共 ' + out.ledger.length + ' 笔' };
 }
 
 /* ---------------- storage: this device, plus the viewer's private store when opened on claude.ai ---------------- */
 var Sync = { col:null, dirty:{}, busy:false, timer:0, empty:false, err:'' };
 function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
 function loadLocal(){ try { var raw = localStorage.getItem(LS_KEY); if (!raw) return null; var o = JSON.parse(raw); return isObj(o) && isOldSample(o.settings) ? null : normalize(o); } catch(e) { return null; } }
+var Undo = { stack:[], cur:null, skip:false, label:'' }, trashTouched = false;
+function undoInit(){
+  Undo.cur = JSON.stringify(S);
+  try { var raw = sessionStorage.getItem('chunguo-undo'); Undo.stack = raw ? (JSON.parse(raw) || []) : []; } catch(e){ Undo.stack = []; }
+}
+function undoSave(){ try { sessionStorage.setItem('chunguo-undo', JSON.stringify(Undo.stack.slice(-8))); } catch(e){} }
+function undoBtn(){
+  var b = $('#undo-btn'); if (!b) return;
+  var last = Undo.stack[Undo.stack.length - 1];
+  b.disabled = !last; b.title = last ? '撤回：' + last.label : '没有可以撤回的操作'; b.setAttribute('aria-label', b.title);
+}
+function doUndo(){
+  var last = Undo.stack.pop();
+  if (!last){ toast('没有可以撤回的操作'); return; }
+  try { S = normalize(JSON.parse(last.s)); } catch(e){ toast('撤回失败了'); return; }
+  Undo.skip = true; undoSave(); closeSheet(); view.editTodo = null; commit();
+  toast('已撤回：' + last.label);
+}
+function toTrash(kind, item){ var id = uid(); S.trash.unshift({ id:id, kind:kind, at:today(), item:item }); if (S.trash.length > 60) S.trash.length = 60; trashTouched = true; return id; }
+function restoreTrash(tid){
+  var t = S.trash.find(function(x){ return x.id === tid; }); if (!t) return false;
+  var key = {ledger:'ledger', todo:'todos', shop:'shop'}[t.kind]; if (!key) return false;
+  if (!S[key].some(function(x){ return x.id === t.item.id; })) S[key].push(t.item);
+  S.trash = S.trash.filter(function(x){ return x.id !== tid; }); trashTouched = true;
+  if (t.kind === 'ledger') view.month = monthOf(t.item.date);
+  Undo.label = '恢复删除的内容'; commit(key);
+  return true;
+}
 function commit(){
   var secs = arguments.length ? Array.prototype.slice.call(arguments) : SECTIONS;
+  if (trashTouched){ if (secs.indexOf('trash') < 0) secs = secs.concat(['trash']); trashTouched = false; }
+  var now = JSON.stringify(S);
+  if (Undo.cur && Undo.cur !== now && !Undo.skip){ Undo.stack.push({ s:Undo.cur, label: Undo.label || '上一步操作' }); if (Undo.stack.length > 20) Undo.stack.shift(); undoSave(); }
+  Undo.cur = now; Undo.skip = false; Undo.label = '';
   saveLocal();
   if (Sync.col){
     if (Sync.empty){ SECTIONS.forEach(function(k){ Sync.dirty[k] = 1; }); Sync.empty = false; }
@@ -697,7 +770,7 @@ async function initCloud(){
     snaps.forEach(function(s, i){ if (s.exists){ try { next[SECTIONS[i]] = JSON.parse(s.data().json); } catch(e){} } });
     if (isOldSample(next.settings)) next = null;
   }
-  if (next){ S = normalize(next); saveLocal(); render(); }
+  if (next){ S = normalize(next); saveLocal(); Undo.stack = []; undoSave(); Undo.cur = JSON.stringify(S); render(); }
   else Sync.empty = true;
   syncNote();
 }
@@ -875,9 +948,12 @@ function render(){
   }).join('');
   var html = '';
   if (S.settings.sample) html += '<div class="sample"><span><b>现在显示的是示例数据</b>，先随便点点看。准备好了就清空，开始记你自己的。</span><button class="btn sm" data-a="clear-sample">清空示例，开始记我的</button></div>';
+  if (isStandalone() && (view.tab === 'home' || view.tab === 'ledger') && !hideTip('standalone'))
+    html += '<div class="notice"><span>现在是从<b>桌面 App</b> 打开的。敲两下背面记的账存在 Safari 里，这里看不到。</span><div class="row"><button class="btn sm primary" data-a="standalone">怎么合到一起</button><button class="btn sm" data-a="hide-tip" data-k="standalone">不再提示</button></div></div>';
   html += ({home:renderHome, ledger:renderLedger, fridge:renderFridge, meals:renderMeals, todo:renderTodo, shop:renderShop}[view.tab] || renderHome)();
   $('#main').innerHTML = html;
   syncNote();
+  undoBtn();
 }
 
 function heroArt(){
@@ -1010,7 +1086,8 @@ function renderLedger(){
     '<button class="btn primary wide" type="submit">' + ic('check') + '记下来</button></form></article>';
   // 明细
   var recs = ms.recs.slice().sort(function(a,b){ return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
-  html += '<article class="card"><header class="card-h"><h2>这个月的明细</h2><span class="badge">' + recs.length + ' 笔</span></header>';
+  var trashN = S.trash.filter(function(t){ return t.kind === 'ledger'; }).length;
+  html += '<article class="card"><header class="card-h"><h2>这个月的明细</h2><span class="badge">' + recs.length + ' 笔</span>' + (trashN ? '<button class="btn sm" data-a="trash">最近删除 ' + trashN + '</button>' : '') + '</header>';
   if (recs.length){
     var groups = {}, order = [];
     recs.forEach(function(r){ if (!groups[r.date]){ groups[r.date] = []; order.push(r.date); } groups[r.date].push(r); });
@@ -1322,8 +1399,11 @@ function sheetBackup(){
     '<div class="form"><div class="row"><button class="btn primary" data-a="bk-copy">' + ic('copy') + '复制备份</button><button class="btn" data-a="bk-download">' + ic('right') + '下载备份文件</button></div>' +
     '<p class="hint">复制的备份是一段文字，可以存到备忘录或者发给自己。换手机时粘贴回来就能恢复。</p>' +
     '<label class="field">恢复：把备份粘贴到这里，或者选一个备份文件<textarea id="bk-text" placeholder="{&quot;v&quot;:1,…}"></textarea></label>' +
-    '<div class="row"><input type="file" id="bk-file" accept=".json,application/json,text/plain" aria-label="选择备份文件" style="max-width:100%;font-size:13px"><button class="btn" data-a="bk-import">用这份备份恢复</button></div>' +
+    '<div class="row"><input type="file" id="bk-file" accept=".json,application/json,text/plain" aria-label="选择备份文件" style="max-width:100%;font-size:13px"></div>' +
+    '<div class="row"><button class="btn primary" data-a="bk-merge">合并到现在的数据</button><button class="btn" data-a="bk-import">用这份替换现在的</button></div>' +
+    '<p class="hint">两边都记过账时用「合并」，谁的都不会丢。「替换」会把现在的数据整个换成备份里的。</p>' +
     '<hr style="border:0;border-top:1px solid var(--line);width:100%;margin:6px 0">' +
+    '<div class="row"><button class="btn" data-a="trash">最近删除</button><span class="hint">删掉的账目、待办和清单保留 30 天。</span></div>' +
     '<div class="row"><button class="btn danger" data-a="bk-wipe">清空所有数据</button><span class="hint">会删掉账本、冰箱、菜单、待办和清单，删前建议先复制一份备份。</span></div></div>');
 }
 
@@ -1351,14 +1431,15 @@ function curOpts(sel){ return ['KRW','CNY'].map(function(c){ return '<option val
 function catNames(){ return S.settings.cats.map(function(c){ return c.n; }); }
 var CAT_HINTS = [
   ['房租水电', /房租|租金|水电|电费|水费|燃气|煤气|网费|话费|物业|管理费|월세|관리비|전기|가스|통신/i],
-  ['交通出行', /地铁|公交|打车|出租|交通|高铁|火车|机票|t-?money|티머니|지하철|버스|택시|ktx|加油/i],
+  ['交通出行', /地铁|公交|打车|出租|交通|高铁|火车|机票|t-?money|티머니|지하철|버스|택시|ktx|srt|코레일|加油|주유|주차/i],
   ['日用品', /日用|纸巾|抽纸|洗衣|洗发|沐浴|牙膏|洗洁精|垃圾袋|衣架|收纳|다이소|올리브영|生活用品|化妆品/i],
-  ['买菜做饭', /买菜|超市|菜市场|市场|蔬菜|水果|猪肉|牛肉|鸡肉|鸡胸|鸡蛋|大米|食材|마트|이마트|홈플러스|롯데마트|시장|컬리/i],
-  ['外卖外食', /外卖|餐厅|饭店|吃饭|午饭|晚饭|早饭|早餐|午餐|晚餐|咖啡|拿铁|美式|奶茶|아메리카노|라떼|饮料|炸鸡|面包|便利店|饭团|배달|배민|요기요|카페|커피|식당|편의점|치킨|스타벅스|gs25|세븐일레븐|이마트24/i]
+  ['买菜做饭', /买菜|超市|菜市场|市场|蔬菜|水果|猪肉|牛肉|鸡肉|鸡胸|鸡蛋|大米|食材|마트|이마트(?!24)|홈플러스|롯데마트|노브랜드|트레이더스|하나로|정육|청과|시장|컬리/i],
+  ['外卖外食', /外卖|餐厅|饭店|吃饭|午饭|晚饭|早饭|早餐|午餐|晚餐|咖啡|拿铁|美式|奶茶|아메리카노|라떼|饮料|炸鸡|面包|便利店|饭团|배달|배민|요기요|카페|커피|식당|편의점|치킨|스타벅스|메가커피|컴포즈|빽다방|투썸|이디야|공차|김밥|분식|국밥|버거|피자|맥도날드|롯데리아|맘스터치|파리바게뜨|뚜레쥬르|gs25|\bcu\b|씨유|세븐일레븐|미니스톱|이마트24/i]
 ];
-function guessCat(text){
+function guessCat(text, strict){
   var names = catNames();
   for (var i = 0; i < CAT_HINTS.length; i++) if (CAT_HINTS[i][1].test(text) && names.indexOf(CAT_HINTS[i][0]) >= 0) return CAT_HINTS[i][0];
+  if (strict) return '';
   return names.indexOf('其他') >= 0 ? '其他' : names[names.length - 1];
 }
 // 找出一句话里的金额：12000、12,000원、1.2万韩元、3만원、5천원、¥58、58元
@@ -1512,7 +1593,7 @@ function sheetPhotoHelp(){
     '<p class="hint" style="margin-top:12px">现金付的，或者只想快点记：在账本里「说一句」，比如「现金 1.2万韩元 买菜」。</p>');
 }
 function sheetReview(items, title, extra){
-  Review.items = items;
+  Review.items = items; Review.fromShot = false;
   var cats = catNames();
   var html = sheetHead(esc(title)) + thumbsHtml() + '<form class="form" data-f="review" autocomplete="off"><div class="rv-list">' + items.map(function(x, i){
     var dup = S.ledger.some(function(r){ return r.amount === x.amount && r.cur === x.cur && r.date === x.date && r.type === x.type; });
@@ -1531,15 +1612,28 @@ function sheetReview(items, title, extra){
 var HOME_URL = 'https://yuxian695-alt.github.io/diet/life/';
 function inArtifact(){ return !!(window.claude && typeof window.claude.use === 'function'); }
 function appUrl(){ return !inArtifact() && /^https?:$/.test(location.protocol) ? location.origin + location.pathname.replace(/index\.html$/, '') : HOME_URL; }
-var MERCHANTS = /GS25|세븐일레븐|이마트24|이마트|홈플러스|롯데마트|코스트코|쿠팡|배달의민족|배민|요기요|스타벅스|메가커피|컴포즈커피|빽다방|투썸|이디야|다이소|올리브영|맥도날드|버거킹|롯데리아|맘스터치|파리바게뜨|뚜레쥬르|컬리|무신사|티머니|카카오\s*T|淘宝|天猫|拼多多|京东|美团|饿了么|星巴克|瑞幸|\bCU\b/i;
-var SHOT_TOTAL = /결제\s*금액|합\s*계|총\s*액|총\s*결제|총\s*금액|받을\s*금액|청구\s*금액|승인\s*금액|이용\s*금액|결제\s*완료|실\s*결제|결제했|实付|付款金额|支付金额|合计|总计|应付|支付成功|付款成功|交易金额/i;
-var SHOT_SKIP = /부가세|부가가치세|과세|면세|공급가|거스름|받은\s*금액|포인트|할인|적립|잔액|누적|한도|단가|수량|번호|전화|사업자|가맹|vat|tax|tel|找零|优惠|余额|积分|折扣|原价|立减|单号|编号|电话/i;
+var MERCHANTS = /GS25|세븐일레븐|이마트24|이마트|홈플러스|롯데마트|코스트코|노브랜드|트레이더스|쿠팡|배달의민족|배민|요기요|스타벅스|메가커피|컴포즈커피|빽다방|투썸|이디야|다이소|올리브영|맥도날드|버거킹|롯데리아|맘스터치|파리바게뜨|뚜레쥬르|컬리|무신사|티머니|카카오\s*T|淘宝|天猫|拼多多|京东|美团|饿了么|星巴克|瑞幸|\bCU\b|씨유|미니스톱/i;
+var SHOT_TOTAL = /결제\s*금액|합\s*계|총\s*액|총\s*결제|총\s*금액|받을\s*금액|청구\s*금액|승인\s*금액|이용\s*금액|거래\s*금액|출금\s*금액|사용\s*금액|매출\s*금액|결제\s*완료|승인\s*완료|실\s*결제|결제했|결제하신|实付|付款金额|支付金额|合计|总计|应付|支付成功|付款成功|交易金额/i;
+var SHOT_MONEYWORD = /금\s*액|金额|일시불|할부|승인|출금|결제|支付|付款/;
+var SHOT_SKIP = /부가세|부가가치세|과세|면세|공급가|거스름|받은\s*금액|포인트|할인|적립|잔액|누적|한도|예정|거래\s*후|납부|이용\s*가능|가능\s*금액|연회비|캐시백|혜택|단가|수량|번호|전화|사업자|vat|tax|tel|找零|优惠|余额|积分|折扣|原价|立减|单号|编号|电话/i;
+// 手机文字识别常见的小错：全角数字、"12, 500"、"12.500원"、￦、把 ₩ 认成 W、把 원 认成 윈
+function normalizeOcr(s){
+  return String(s || '').replace(/\r/g, '')
+    .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+    .replace(/￦/g, '₩').replace(/(^|[^A-Za-z])W\s?(?=\d)/g, '$1₩')
+    .replace(/(\d)\s*[，､]\s*(?=\d{3}(?!\d))/g, '$1,')
+    .replace(/(\d),\s+(?=\d{3}(?!\d))/g, '$1,')
+    .replace(/(\d{1,3})\.(\d{3})\.(\d{3})(?=\s*원)/g, '$1,$2,$3')
+    .replace(/(\d{1,3})\.(\d{3})(?=\s*원)/g, '$1,$2')
+    .replace(/(\d)\s*윈/g, '$1원');
+}
 function stripNoise(s){
   return s.replace(/\d{4}\s*[.\-\/년年]\s*\d{1,2}\s*[.\-\/월月]\s*\d{1,2}\s*[일日]?/g, ' ')
     .replace(/\d{1,2}\s*월\s*\d{1,2}\s*일|\d{1,2}\s*月\s*\d{1,2}\s*日/g, ' ')
+    .replace(/\d{1,2}[.\/]\d{1,2}\s*(?:\([^)]{1,3}\))?\s*(?=\d{1,2}:\d{2})/g, ' ')
     .replace(/\d{1,2}:\d{2}(?::\d{2})?/g, ' ')
     .replace(/\d{2,4}-\d{3,4}-\d{4}|\d{3}-\d{2}-\d{5}/g, ' ')
-    .replace(/[\d*]{4}[-\s][\d*]{4}[-\s][\d*]{4}[-\s][\d*]{2,4}/g, ' ')
+    .replace(/[\d*]{4}[-\s][\d*]{2,4}[-\s][\d*]{2,4}[-\s][\d*]{2,4}/g, ' ')
     .replace(/\(\d{3,4}\)|\*{2,}\d*/g, ' ')
     .replace(/(^|\s)\d{1,2}\/\d{1,2}(?=\s|$)/g, ' ');
 }
@@ -1553,29 +1647,38 @@ function shotDate(s){
   }
   if ((m = s.match(/(20\d{2})\s*[.\-\/년年]\s*(\d{1,2})\s*[.\-\/월月]\s*(\d{1,2})/))) return mk(+m[1], m[2], m[3], true);
   if ((m = s.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일|(\d{1,2})\s*月\s*(\d{1,2})\s*日/))) return mk(y, m[1] || m[3], m[2] || m[4]);
+  if ((m = s.match(/(\d{1,2})[.\/](\d{1,2})\s*(?:\([^)]{1,3}\))?\s*\d{1,2}:\d{2}/))) return mk(y, m[1], m[2]);
   if ((m = s.match(/(?:^|\s|\))(\d{1,2})\/(\d{1,2})(?=\s|$)/))) return mk(y, m[1], m[2]);
   if (/어제|昨天/.test(s)) return addDays(t, -1);
   return t;
 }
-function parseShot(raw){
-  var text = String(raw || '').replace(/\r/g, '');
+function merchantOf(text){
+  var m = text.match(/(?:가맹점[ \t]*명?|이용[ \t]*가맹점|이용처|사용처|거래처|상호[ \t]*명?|收款方|商户名?称?|商家)[ \t]*[:：]?[ \t]*([^\n]{2,30})/);
+  if (m){ var v = m[1].replace(/\s+/g, ' ').trim(); if (v && !/번호|^[\d\s\-*]+$/.test(v) && !findAmounts(v).some(function(a){ return a.cur; })) return v.slice(0, 20); }
+  var k = text.match(MERCHANTS); if (k) return k[0].trim();
+  var t = text.match(/\d{1,2}:\d{2}[ \t]+([^\n\d][^\n]{1,19}?)(?:[ \t]+누적|[ \t]*$)/m);
+  if (t && !SHOT_SKIP.test(t[1])) return t[1].trim();
+  return '';
+}
+function parseShot(text){
   var lines = text.split(/\n+/).map(function(l){ return l.trim(); }).filter(Boolean);
   var isTotal = function(ln){ return SHOT_TOTAL.test(ln) || (/total/i.test(ln) && !/sub\s*-?\s*total/i.test(ln)); };
-  var cands = [];
+  var cands = [], firstCur = true;
   lines.forEach(function(ln, i){
     var clean = stripNoise(ln), prevTotal = i > 0 && isTotal(lines[i - 1]) && !findAmounts(stripNoise(lines[i - 1])).length;
     findAmounts(clean).forEach(function(a){
       if (!(a.a > 0) || a.a > 1e8) return;
-      var prefix = clean.slice(Math.max(0, a.idx - 10), a.idx), bare = !a.cur && a.raw.indexOf(',') < 0, sc = 0;
-      if (a.cur) sc += 3;
+      var prefix = clean.slice(Math.max(0, a.idx - 10), a.idx), bare = !a.cur && a.raw.indexOf(',') < 0, skip = SHOT_SKIP.test(prefix), sc = 0;
+      if (a.cur){ sc += 3; if (firstCur && !skip){ sc += 1; firstCur = false; } }
       if (/\d,\d{3}/.test(a.raw)) sc += 1.5;
       if (/\.\d{2}(?!\d)/.test(a.raw)) sc += 0.5;
-      if (isTotal(ln)) sc += 5; else if (prevTotal) sc += 4;
-      if (SHOT_SKIP.test(prefix)) sc -= 6;
+      if (isTotal(ln)) sc += 5; else if (prevTotal) sc += 4; else if (SHOT_MONEYWORD.test(ln)) sc += 2;
+      if (skip) sc -= 6;
       if (/[-−]\s*$/.test(prefix)) sc += 1;
+      var plus = /\+\s*$/.test(prefix);
       if (bare && a.a < 100) sc -= 2;
       if (bare && a.a >= 1e6) sc -= 5;
-      cands.push({a:a.a, cur:a.cur, sc:sc});
+      cands.push({a:a.a, cur:a.cur, sc:sc, plus:plus});
     });
   });
   if (!cands.length) return null;
@@ -1584,11 +1687,29 @@ function parseShot(raw){
   var rivals = cands.filter(function(c){ return c.a !== best.a && c.sc >= Math.min(best.sc, 3); });
   var confident = best.sc >= 3 && !rivals.some(function(c){ return c.sc >= best.sc - 0.5; }) && (best.sc >= 6.5 || !rivals.length);
   var cur = best.cur || (/원|₩|krw/i.test(text) ? 'KRW' : /[¥￥元]|rmb|cny/i.test(text) ? 'CNY' : best.a >= 1000 ? 'KRW' : best.a < 100 ? 'CNY' : S.settings.budgetCur);
-  var mer = (text.match(MERCHANTS) || [''])[0].trim();
+  var mer = merchantOf(text);
+  var income = (best.plus || /입금|收款成功|已到账|到账/.test(text)) && !/출금|결제|승인|支付成功|付款/.test(text);
   var pay = /카카오\s*페이|네이버\s*페이|토스|페이코|삼성\s*페이|애플\s*페이|apple\s*pay|微信|支付宝|云闪付/i.test(text) ? 'online' : /현금/.test(text) ? 'cash' : /카드|승인|일시불|신용|체크/.test(text) ? 'card' : '';
-  return { confident: confident, item: { type:'out', amount: cur === 'KRW' ? Math.round(best.a) : r2(best.a), cur:cur, cat: guessCat(text), date: shotDate(text), pay:pay, note: mer || '截图记账' } };
+  return { confident: confident, item: { type: income ? 'in' : 'out', amount: cur === 'KRW' ? Math.round(best.a) : r2(best.a), cur:cur,
+    cat: income ? '收入' : ((mer && guessCat(mer, true)) || guessCat(text)), date: shotDate(text), pay: income ? '' : pay, note: mer || '截图记账' } };
 }
-function ocrHtml(txt){ return txt ? '<details class="ocr"><summary>截图里认出的文字</summary><pre>' + esc(String(txt).slice(0, 2000)) + '</pre></details>' : ''; }
+function ocrHtml(txt, open){
+  return txt ? '<details class="ocr"' + (open ? ' open' : '') + '><summary>截图里认出的文字</summary><pre id="ocr-text">' + esc(String(txt).slice(0, 2000)) + '</pre><button type="button" class="btn sm" data-a="copy-ocr">' + ic('copy') + '复制这段文字</button></details>' : '';
+}
+function sheetShotEmpty(){
+  openSheet(sheetHead('没收到截图里的文字') + '<p class="lead">手机没从截图里认出任何字，一般是下面两种情况：</p>' +
+    '<ol class="steps help"><li><span><b>银行或信用卡 App 不让截图。</b>很多金融 App 为了安全，截图会变成黑屏或白屏。可以自己按「侧边键 + 音量上」截一张看看。<br>这种情况改成在<b>刷卡通知</b>上敲两下：收到通知后下拉通知中心，让那条通知显示出金额，再敲两下背面。银行发来的短信、카카오톡 알림톡 也可以。</span></li>' +
+    '<li><span><b>快捷指令最后一步没接上文字。</b>打开「记一笔」，看「打开 URL」里网址后面有没有插入变量「URL 编码后的文本」。</span></li></ol>' +
+    '<div class="sheet-actions"><button class="btn" data-a="shortcut">看快捷指令步骤</button><button class="btn primary" data-a="close">知道了</button></div>');
+}
+function sheetShotNone(txt){
+  var blocked = /캡처|캡쳐|화면\s*보호|스크린샷|보안/.test(txt);
+  openSheet(sheetHead('截图里没找到金额') +
+    '<p class="lead">' + (blocked ? '截到的好像是银行 App 的安全提示，它不让截图。改成在刷卡通知上敲两下：下拉通知中心，让那条通知显示出金额，再敲两下背面。'
+                                  : '认出了文字，但没找到像付款金额的数字。可以停在「支付成功」或交易详情页再试，也可以在刷卡通知上敲两下。') + '</p>' +
+    ocrHtml(txt, true) + '<p class="hint" style="margin-top:10px">如果截的确实是付款页面，点「复制这段文字」，发给 Claude，让它按你银行 App 的格式调整识别规则。</p>' +
+    '<div class="sheet-actions"><button class="btn" data-a="say-focus">说一句</button><button class="btn primary" data-a="close">知道了</button></div>');
+}
 function handleShot(){
   var h = location.hash || '';
   if (h.indexOf('#shot=') !== 0) return false;
@@ -1596,26 +1717,53 @@ function handleShot(){
   try { txt = decodeURIComponent(raw); } catch(e){ txt = raw; }
   try { history.replaceState(null, '', location.pathname + location.search + '#ledger'); } catch(e){}
   closeSheet();
-  view.tab = 'ledger';
+  view.tab = 'ledger'; view.month = monthOf(today());
+  txt = normalizeOcr(txt);
+  if (txt.replace(/\s/g, '').length < 2){ render(); sheetShotEmpty(); return true; }
   var r = parseShot(txt);
-  if (!r){
-    view.month = monthOf(today()); render();
-    openSheet(sheetHead('截图里没找到金额') + '<p class="lead">可能截到的不是付款页面。付完款停在「支付成功」页或者小票上再敲两下，或者直接说一句、手动记。</p>' + ocrHtml(txt) +
-      '<div class="sheet-actions"><button class="btn primary" data-a="say-focus">说一句</button><button class="btn" data-a="close">手动记</button></div>');
-    return true;
-  }
-  var x = r.item, dup = S.ledger.some(function(z){ return z.type === 'out' && z.amount === x.amount && z.cur === x.cur && z.date === x.date; });
+  if (!r){ render(); sheetShotNone(txt); return true; }
+  var x = r.item, dup = S.ledger.some(function(z){ return z.type === x.type && z.amount === x.amount && z.cur === x.cur && z.date === x.date; });
   view.month = monthOf(x.date);
   if (r.confident && !dup){
+    var cleared = S.settings.sample ? (clearSample(), true) : false;
     var rec = Object.assign({id:uid()}, x);
-    S.ledger.push(rec); commit('ledger');
-    toast('已自动记账：' + rec.cat + ' ' + fmtC(rec.amount, rec.cur), function(){ S.ledger = S.ledger.filter(function(z){ return z.id !== rec.id; }); commit('ledger'); toast('撤销了'); });
+    S.ledger.push(rec); Undo.label = '自动记账'; commit();
+    toast('已自动记账：' + (rec.type === 'in' ? '收入' : rec.cat) + ' ' + fmtC(rec.amount, rec.cur) + (cleared ? '（示例数据已清空）' : ''), function(){
+      S.ledger = S.ledger.filter(function(z){ return z.id !== rec.id; }); Undo.label = '撤销自动记账'; commit('ledger'); toast('撤销了');
+    });
   } else {
     render();
     Review.urls = [];
     sheetReview([x], dup ? '这笔好像记过了，确认一下' : '没太认准，核对一下', ocrHtml(txt));
+    Review.fromShot = true;
   }
   return true;
+}
+function isStandalone(){ try { return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches; } catch(e){ return false; } }
+function hideTip(k){ try { return localStorage.getItem('chunguo-hide-' + k) === '1'; } catch(e){ return false; } }
+function sheetStandalone(){
+  var u = appUrl();
+  openSheet(sheetHead('让桌面图标和敲两下用同一份账') +
+    '<p class="lead">iPhone 不让快捷指令打开桌面上的 App，只能打开 Safari；而桌面 App 和 Safari 的数据是分开存的。所以敲两下记的账在 Safari 里，这里看不到。把桌面图标换成「用 Safari 打开」就好了：</p>' +
+    '<ol class="steps help">' +
+    '<li><span>点下面的 <b>复制这里的账</b>，把桌面 App 里记过的东西带走</span></li>' +
+    '<li><span>用 <b>Safari</b> 打开 ' + esc(u) + '，点页面最下面的「备份与恢复」，把刚复制的粘贴进去，点 <b>合并到现在的数据</b>。两边的账会合在一起，不会丢</span></li>' +
+    '<li><span>回到桌面，长按这个图标，删掉它</span></li>' +
+    '<li><span>在 Safari 里点 <b>分享 → 添加到主屏幕</b>，把 <b>作为 Web App 打开</b> 关掉，再点「添加」。以后点桌面图标会用 Safari 打开，敲两下记的账都在这里</span></li></ol>' +
+    '<p class="hint">添加时没看到那个开关的话：在「快捷指令」里再做一个只有「打开 URL」（填上面的网址）的快捷指令，点它的「…」→「添加到主屏幕」，用它当桌面图标。</p>' +
+    '<div class="sheet-actions"><button class="btn" data-a="copy-url">复制网址</button><button class="btn primary" data-a="bk-copy">复制这里的账</button></div>');
+}
+function sheetTrash(){
+  var list = S.trash.slice();
+  function desc(t){
+    var x = t.item;
+    if (t.kind === 'ledger') return ['🧾', x.note || x.cat, md(x.date) + ' · ' + (x.type === 'in' ? '收入' : x.type === 'save' ? '存钱' : x.cat) + ' · ' + fmtC(x.amount, x.cur)];
+    if (t.kind === 'todo') return ['☑️', x.t, '待办 · ' + md(x.d)];
+    return ['🛒', x.n, '采购清单'];
+  }
+  openSheet(sheetHead('最近删除') + '<p class="lead">删掉的账目、待办和采购清单会在这里保留 30 天，点「恢复」放回去。</p>' +
+    (list.length ? '<div class="list">' + list.map(function(t){ var d = desc(t); return '<div class="li"><span class="emo">' + d[0] + '</span><span class="tx"><b>' + esc(d[1]) + '</b><small>' + esc(d[2]) + ' · ' + md(t.at) + '删的</small></span><button class="btn sm soft" data-a="restore" data-id="' + t.id + '">恢复</button></div>'; }).join('') + '</div>'
+                 : '<div class="empty">最近没有删过东西。</div>'));
 }
 function sheetShortcut(){
   var u = appUrl() + '#shot=';
@@ -1632,6 +1780,7 @@ function sheetShortcut(){
     '<ol class="steps help" style="counter-reset:s 5"><li><span>点最上面的名字，改成 <b>记一笔</b>，点「完成」</span></li></ol>' +
     '<h4 class="sh-h">第二步：绑定敲两下</h4><ol class="steps help"><li><span>打开 <b>设置 → 辅助功能 → 触控 → 轻点背面 → 轻点两下</b>，选 <b>记一笔</b></span></li>' +
     '<li><span>第一次运行时，快捷指令会问能不能打开这个网址，点 <b>允许</b></span></li></ol>' +
+    '<h4 class="sh-h">银行 App 截不了图怎么办</h4><p class="hint">很多银行、信用卡 App 不让截图，截出来是黑的。这时在<b>刷卡通知</b>上敲两下：收到通知后下拉通知中心，让那条通知显示出金额，再敲两下背面。银行短信、카카오톡 알림톡 也行。</p>' +
     '<h4 class="sh-h">用起来是这样</h4><p class="hint">认准了会直接记好，屏幕下面出现「撤销」，记错了点一下就行。没认准、或者看起来记过了，会先让你核对。识别靠的是手机自带的文字识别：付款完成页、带「합계 / 결제금액 / 实付」的小票最准。</p>' +
     '<p class="hint" style="margin-top:8px">快捷指令会用 Safari 打开生活管家，所以平时也请在 Safari 里用它，账才在一起。加到主屏幕时如果看到「作为 Web App 打开」，把它关掉。</p>' +
     '<div class="sheet-actions"><button class="btn" data-a="shot-demo">用一张示例试试</button><button class="btn primary" data-a="close">知道了</button></div>');
@@ -1687,11 +1836,19 @@ function copyText(text, okMsg){
     else fallback();
   } catch(e){ fallback(); }
 }
-function importData(text){
+function importData(text, mode){
   var data;
   try { data = JSON.parse(text); } catch(e){ toast('这段内容不是有效的备份，检查一下有没有复制完整'); return; }
   if (!isObj(data) || !(Array.isArray(data.ledger) || Array.isArray(data.fridge) || Array.isArray(data.todos))){ toast('这段内容里没有找到账本、冰箱或待办数据'); return; }
-  S = normalize(data); closeSheet(); commit(); toast('恢复好了');
+  var inc = normalize(data);
+  if (mode === 'merge'){ var r = mergeData(S, inc); Undo.label = '合并备份'; S = r.s; closeSheet(); commit(); toast(r.msg); }
+  else { Undo.label = '用备份替换'; S = inc; closeSheet(); commit(); toast('恢复好了'); }
+}
+function readBackup(mode){
+  var file = $('#bk-file') && $('#bk-file').files[0], text = $('#bk-text') ? $('#bk-text').value.trim() : '';
+  if (file){ var rd = new FileReader(); rd.onload = function(){ importData(String(rd.result || ''), mode); }; rd.onerror = function(){ toast('文件读不出来，换一个试试'); }; rd.readAsText(file); return; }
+  if (!text){ toast('先粘贴备份内容，或者选一个备份文件'); return; }
+  importData(text, mode);
 }
 
 var A = {
@@ -1702,13 +1859,26 @@ var A = {
   search: sheetSearch,
   gen: sheetGenerate,
   backup: sheetBackup,
-  'clear-sample': function(el){ arm(el, function(){ var keep = S.settings; S = freshState(); S.settings.prefs = keep.prefs; commit(); toast('示例清空了，开始记你自己的吧'); }); },
+  'clear-sample': function(el){ arm(el, function(){ var n = clearSample(); Undo.label = '清空示例'; commit(); toast(n ? '示例清空了，你自己记的 ' + n + ' 笔账留着' : '示例清空了，开始记你自己的吧'); }); },
   // ledger
   month: function(el){ var d = +el.dataset.d; view.month = addMonths(view.month, d); render(); },
-  'lg-del': function(el){ arm(el, function(){ S.ledger = S.ledger.filter(function(r){ return r.id !== el.dataset.id; }); commit('ledger'); toast('删掉了'); }); },
+  'lg-del': function(el){ arm(el, function(){
+    var r = S.ledger.find(function(x){ return x.id === el.dataset.id; }); if (!r) return;
+    var name = r.note || r.cat; S.ledger = S.ledger.filter(function(x){ return x !== r; }); var tid = toTrash('ledger', r);
+    Undo.label = '删除「' + name + '」'; commit('ledger');
+    toast('删掉了「' + name + '」', function(){ if (restoreTrash(tid)) toast('恢复了'); });
+  }); },
+  undo: doUndo,
+  trash: sheetTrash,
+  restore: function(el){ if (restoreTrash(el.dataset.id)){ toast('恢复了'); sheetTrash(); } },
+  'copy-ocr': function(){ var el = $('#ocr-text'); if (el) copyText(el.textContent, '已复制，可以发给 Claude 看看'); },
+  'copy-url': function(){ copyText(appUrl(), '网址已复制，去 Safari 里粘贴打开'); },
+  standalone: sheetStandalone,
+  'hide-tip': function(el){ try { localStorage.setItem('chunguo-hide-' + el.dataset.k, '1'); } catch(e){} render(); },
+  'bk-merge': function(){ readBackup('merge'); },
   budget: sheetBudget,
   rate: sheetRate,
-  'show-cur': function(el){ S.settings.showCur = el.dataset.c; commit('settings'); },
+  'show-cur': function(el){ S.settings.showCur = el.dataset.c; Undo.skip = true; commit('settings'); },
   'rate-fetch': async function(el){
     el.disabled = true; el.textContent = '正在查…';
     try {
@@ -1785,13 +1955,23 @@ var A = {
     commit('todos');
     if (x.done){ var tl = todayTodos(); if (tl.length && tl.every(function(i){ return i.done; })) toast('今天的事都做完了'); }
   },
-  'todo-del': function(el){ arm(el, function(){ S.todos = S.todos.filter(function(i){ return i.id !== el.dataset.id; }); commit('todos'); }); },
+  'todo-del': function(el){ arm(el, function(){
+    var x = S.todos.find(function(i){ return i.id === el.dataset.id; }); if (!x) return;
+    S.todos = S.todos.filter(function(i){ return i !== x; }); var tid = toTrash('todo', x);
+    Undo.label = '删除待办「' + x.t + '」'; commit('todos');
+    toast('删掉了「' + x.t + '」', function(){ if (restoreTrash(tid)) toast('恢复了'); });
+  }); },
   'todo-edit': function(el){ view.editTodo = el.dataset.id; render(); var inp = $('.todo-edit input[name=t]'); if (inp) inp.focus(); },
   'todo-cancel': function(){ view.editTodo = null; render(); },
   'todo-quick': function(el){ S.todos.push({id:uid(), t:el.dataset.t, d:today(), done:false, doneAt:'', rep:''}); commit('todos'); toast('加上了：' + el.dataset.t); },
   // shop
   'shop-toggle': function(el){ var x = S.shop.find(function(i){ return i.id === el.dataset.id; }); if (!x) return; x.done = !x.done; commit('shop'); },
-  'shop-del': function(el){ S.shop = S.shop.filter(function(i){ return i.id !== el.dataset.id; }); commit('shop'); },
+  'shop-del': function(el){
+    var x = S.shop.find(function(i){ return i.id === el.dataset.id; }); if (!x) return;
+    S.shop = S.shop.filter(function(i){ return i !== x; }); var tid = toTrash('shop', x);
+    Undo.label = '删除「' + x.n + '」'; commit('shop');
+    toast('删掉了「' + x.n + '」', function(){ if (restoreTrash(tid)) toast('恢复了'); });
+  },
   'shop-clear': function(el){ arm(el, function(){ S.shop = S.shop.filter(function(i){ return !i.done; }); commit('shop'); }); },
   'shop-copy': function(){
     var pend = S.shop.filter(function(x){ return !x.done; });
@@ -1809,12 +1989,7 @@ var A = {
     try { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], {type:'application/json'})); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
     catch(e){ toast('这里不能下载文件，用「复制备份」吧'); }
   },
-  'bk-import': function(){
-    var file = $('#bk-file') && $('#bk-file').files[0], text = $('#bk-text') ? $('#bk-text').value.trim() : '';
-    if (file){ var rd = new FileReader(); rd.onload = function(){ importData(String(rd.result || '')); }; rd.onerror = function(){ toast('文件读不出来，换一个试试'); }; rd.readAsText(file); return; }
-    if (!text){ toast('先粘贴备份内容，或者选一个备份文件'); return; }
-    importData(text);
-  },
+  'bk-import': function(){ readBackup('replace'); },
   'bk-wipe': function(el){ arm(el, function(){ S = freshState(); closeSheet(); commit(); toast('全部清空了'); }); }
 };
 
@@ -1846,7 +2021,9 @@ var F = {
     sheetReview(items, '认出 ' + items.length + ' 笔，核对一下');
   },
   review: function(f){
-    var fd = new FormData(f), added = [], sums = {KRW:0, CNY:0};
+    var fd = new FormData(f), added = [], sums = {KRW:0, CNY:0}, cleared = false;
+    if (Review.fromShot && S.settings.sample){ clearSample(); cleared = true; }
+    Review.fromShot = false;
     Review.items.forEach(function(x, i){
       if (!fd.get('on-' + i)) return;
       var cur = fd.get('cur-' + i) === 'CNY' ? 'CNY' : 'KRW', amount = amountOf(fd.get('amt-' + i), cur);
@@ -1857,7 +2034,7 @@ var F = {
     });
     if (!added.length){ toast('没有勾选要记的'); return; }
     view.month = monthOf(added[0].date);
-    closeSheet(); commit('ledger');
+    closeSheet(); if (cleared) commit(); else commit('ledger');
     if (view.tab === 'ledger'){ var say = $('#say-in'); if (say) say.value = ''; }
     toast('记好了 ' + added.length + ' 笔：' + splitText(sums));
   },
@@ -1934,10 +2111,14 @@ var F = {
   }
 };
 
+var UNDO_LABELS = { 'todo-toggle':'勾选待办', 'todo-quick':'添加待办', 'shop-toggle':'勾选采购清单', 'shop-clear':'清掉已买的', 'shop-week':'加入采购清单', 'recipe-shop':'加入采购清单',
+  'food-minus':'用掉食材', 'food-done':'吃完食材', 'food-waste':'扔掉食材', 'cook':'做菜扣库存', 'pick-set':'换菜', 'pick-clear':'清空这顿', 'auto-one':'安排一道菜', 'plan-it':'放进菜单', 'bk-wipe':'清空所有数据' };
+var UNDO_FORMS = { ledger:'记一笔', review:'记账', food:'改食材', budget:'改预算', gen:'生成菜单', 'pick-custom':'改这顿', bought:'收进冰箱', 'todo-add':'添加待办', 'todo-edit':'改待办', 'shop-add':'添加采购清单', rate:'改汇率' };
 document.addEventListener('click', function(e){
   var el = e.target.closest('[data-a]'); if (!el) return;
   var fn = A[el.dataset.a]; if (!fn) return;
   if (el.tagName === 'A') e.preventDefault();
+  Undo.label = UNDO_LABELS[el.dataset.a] || '';
   fn(el, e);
 });
 document.addEventListener('keydown', function(e){
@@ -1948,6 +2129,7 @@ document.addEventListener('keydown', function(e){
 document.addEventListener('submit', function(e){
   var f = e.target.closest('form[data-f]'); if (!f) return;
   e.preventDefault();
+  Undo.label = UNDO_FORMS[f.dataset.f] || '';
   var fn = F[f.dataset.f]; if (fn) fn(f);
 });
 document.addEventListener('focusin', function(e){ if (e.target.id === 'bd-total') budgetBase = null; });
@@ -1988,6 +2170,7 @@ document.addEventListener('visibilitychange', function(){ if (!document.hidden) 
 
 /* ---------------- boot ---------------- */
 S = loadLocal() || sampleState();
+undoInit();
 var h0 = location.hash.slice(1);
 if (TABS.some(function(t){ return t[0] === h0; })) view.tab = h0;
 if (!handleShot()) render();
