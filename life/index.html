@@ -1801,10 +1801,10 @@ function sheetShortcut(){
     (inArtifact() ? '<p class="note">这个功能要用 Safari 打开的生活管家（' + esc(HOME_URL) + '）。claude.ai 里的这个版本收不到快捷指令发来的内容，两边的账也不互通。</p>' : '') +
     '<h4 class="sh-h">第一步：做一个快捷指令（只做一次）</h4><ol class="steps help">' +
     '<li><span>打开「快捷指令」App，点右上角 <b>+</b></span></li>' +
-    '<li><span>点「添加操作」，搜索并添加 <b>截取屏幕快照</b></span></li>' +
-    '<li><span>再添加 <b>从图像中提取文本</b>，它会自动用上一步的截图</span></li>' +
-    '<li><span>再添加 <b>URL 编码</b>（搜「URL」就能找到），它会自动用上一步的文字</span></li>' +
-    '<li><span>再添加 <b>打开 URL</b>。点它的输入框，先粘贴下面这段，再紧跟着插入变量 <b>URL 编码后的文本</b></span></li></ol>' +
+    '<li><span>在下面的「搜索操作」里搜 <b>截屏</b>，点它添加（有的系统叫「截取屏幕快照」）</span></li>' +
+    '<li><span>再搜 <b>提取文本</b>，添加「从图像中提取文本」，它会显示成「从 截屏 中提取文本」</span></li>' +
+    '<li><span>再搜 <b>URL 编码</b> 添加，它会显示成「URL 编码 图像中的文本」</span></li>' +
+    '<li><span>再搜 <b>打开 URL</b> 添加。它会自动填上蓝色的「URL编码后的文本」：<b>点这个蓝色块，选「清除」</b>；然后点空出来的框，粘贴下面这段网址；<b>不要按空格和换行</b>，直接点键盘上方的「URL编码后的文本」。网址和蓝色块要紧挨着，中间不能有空白小格子，不然会报「无法将多信息文本转换为 URL」</span></li></ol>' +
     '<div class="copy-row"><code>' + esc(u) + '</code><button class="btn sm" data-a="copy-sc">' + ic('copy') + '复制</button></div>' +
     '<ol class="steps help" style="counter-reset:s 5"><li><span>点最上面的名字，改成 <b>记一笔</b>，点「完成」</span></li></ol>' +
     '<h4 class="sh-h">第二步：绑定敲两下</h4><ol class="steps help"><li><span>打开 <b>设置 → 辅助功能 → 触控 → 轻点背面 → 轻点两下</b>，选 <b>记一笔</b></span></li>' +
