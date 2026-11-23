@@ -1436,11 +1436,11 @@ function photoBtn(cls){
 function curOpts(sel){ return ['KRW','CNY'].map(function(c){ return '<option value="' + c + '"' + (sel === c ? ' selected' : '') + '>' + CURS[c].sym + ' ' + CURS[c].name + '</option>'; }).join(''); }
 function catNames(){ return S.settings.cats.map(function(c){ return c.n; }); }
 var CAT_HINTS = [
-  ['房租水电', /房租|租金|水电|电费|水费|燃气|煤气|网费|话费|物业|管理费|월세|관리비|전기|가스|통신/i],
+  ['房租水电', /房租|租金|缴费|水电|电费|水费|燃气|煤气|网费|话费|物业|管理费|월세|관리비|전기|가스|통신/i],
   ['交通出行', /地铁|公交|打车|出租|交通|高铁|火车|机票|t-?money|티머니|지하철|버스|택시|ktx|srt|코레일|加油|주유|주차/i],
-  ['日用品', /日用|纸巾|抽纸|洗衣|洗发|沐浴|牙膏|洗洁精|垃圾袋|衣架|收纳|다이소|올리브영|生活用品|化妆品/i],
+  ['日用品', /日用|百货|纸巾|抽纸|洗衣|洗发|沐浴|牙膏|洗洁精|垃圾袋|衣架|收纳|다이소|올리브영|生活用品|化妆品/i],
   ['买菜做饭', /买菜|超市|菜市场|市场|蔬菜|水果|猪肉|牛肉|鸡肉|鸡胸|鸡蛋|大米|食材|마트|이마트(?!24)|홈플러스|롯데마트|노브랜드|트레이더스|하나로|정육|청과|시장|컬리/i],
-  ['外卖外食', /外卖|餐厅|饭店|吃饭|午饭|晚饭|早饭|早餐|午餐|晚餐|咖啡|拿铁|美式|奶茶|아메리카노|라떼|饮料|炸鸡|面包|便利店|饭团|배달|배민|요기요|카페|커피|식당|편의점|치킨|스타벅스|메가커피|컴포즈|빽다방|투썸|이디야|공차|김밥|분식|국밥|버거|피자|맥도날드|롯데리아|맘스터치|파리바게뜨|뚜레쥬르|gs25|\bcu\b|씨유|세븐일레븐|미니스톱|이마트24/i]
+  ['外卖外食', /外卖|餐饮|美食|餐厅|饭店|吃饭|午饭|晚饭|早饭|早餐|午餐|晚餐|咖啡|拿铁|美式|奶茶|아메리카노|라떼|饮料|炸鸡|面包|便利店|饭团|배달|배민|요기요|카페|커피|식당|편의점|치킨|스타벅스|메가커피|컴포즈|빽다방|투썸|이디야|공차|김밥|분식|국밥|버거|피자|맥도날드|롯데리아|맘스터치|파리바게뜨|뚜레쥬르|gs25|\bcu\b|씨유|세븐일레븐|미니스톱|이마트24/i]
 ];
 function guessCat(text, strict){
   var names = catNames();
@@ -1621,7 +1621,7 @@ function appUrl(){ return !inArtifact() && /^https?:$/.test(location.protocol) ?
 var MERCHANTS = /GS25|세븐일레븐|이마트24|이마트|홈플러스|롯데마트|코스트코|노브랜드|트레이더스|쿠팡|배달의민족|배민|요기요|스타벅스|메가커피|컴포즈커피|빽다방|투썸|이디야|다이소|올리브영|맥도날드|버거킹|롯데리아|맘스터치|파리바게뜨|뚜레쥬르|컬리|무신사|티머니|카카오\s*T|淘宝|天猫|拼多多|京东|美团|饿了么|星巴克|瑞幸|\bCU\b|씨유|미니스톱/i;
 var SHOT_TOTAL = /결제\s*금액|합\s*계|총\s*액|총\s*결제|총\s*금액|받을\s*금액|청구\s*금액|승인\s*금액|이용\s*금액|거래\s*금액|출금\s*금액|사용\s*금액|매출\s*금액|결제\s*완료|승인\s*완료|실\s*결제|결제했|결제하신|实付|付款金额|支付金额|合计|总计|应付|支付成功|付款成功|交易金额/i;
 var SHOT_MONEYWORD = /금\s*액|金额|일시불|할부|승인|출금|결제|支付|付款/;
-var SHOT_SKIP = /부가세|부가가치세|과세|면세|공급가|거스름|받은\s*금액|포인트|할인|적립|잔액|누적|한도|예정|거래\s*후|납부|이용\s*가능|가능\s*금액|연회비|캐시백|혜택|단가|수량|번호|전화|사업자|vat|tax|tel|找零|优惠|余额|积分|折扣|原价|立减|单号|编号|电话/i;
+var SHOT_SKIP = /交易地金额|原币金额|外币金额|当地金额|부가세|부가가치세|과세|면세|공급가|거스름|받은\s*금액|포인트|할인|적립|잔액|누적|한도|예정|거래\s*후|납부|이용\s*가능|가능\s*금액|연회비|캐시백|혜택|단가|수량|번호|전화|사업자|vat|tax|tel|找零|优惠|余额|积分|折扣|原价|立减|单号|编号|电话/i;
 // 手机文字识别常见的小错：全角数字、"12, 500"、"12.500원"、￦、把 ₩ 认成 W、把 원 认成 윈
 function normalizeOcr(s){
   return String(s || '').replace(/\r/g, '')
@@ -1659,7 +1659,7 @@ function shotDate(s){
   return t;
 }
 function merchantOf(text){
-  var m = text.match(/(?:가맹점[ \t]*명?|이용[ \t]*가맹점|이용처|사용처|거래처|상호[ \t]*명?|收款方|商户名?称?|商家)[ \t]*[:：]?[ \t]*([^\n]{2,30})/);
+  var m = text.match(/(?:가맹점[ \t]*명?|이용[ \t]*가맹점|이용처|사용처|거래처|상호[ \t]*명?|收款方|商户名?称?|商家|交易地(?!金额)点?|交易对象|对方户名)[ \t]*[:：]?[ \t]*([^\n]{2,30})/);
   if (m){ var v = m[1].replace(/\s+/g, ' ').trim(); if (v && !/번호|^[\d\s\-*]+$/.test(v) && !findAmounts(v).some(function(a){ return a.cur; })) return v.slice(0, 20); }
   var k = text.match(MERCHANTS); if (k) return k[0].trim();
   var t = text.match(/\d{1,2}:\d{2}[ \t]+([^\n\d][^\n]{1,19}?)(?:[ \t]+누적|[ \t]*$)/m);
@@ -1695,9 +1695,12 @@ function parseShot(text){
   var cur = best.cur || (/원|₩|krw/i.test(text) ? 'KRW' : /[¥￥元]|rmb|cny/i.test(text) ? 'CNY' : best.a >= 1000 ? 'KRW' : best.a < 100 ? 'CNY' : S.settings.budgetCur);
   var mer = merchantOf(text);
   var income = (best.plus || /입금|收款成功|已到账|到账/.test(text)) && !/출금|결제|승인|支付成功|付款/.test(text);
-  var pay = /카카오\s*페이|네이버\s*페이|토스|페이코|삼성\s*페이|애플\s*페이|apple\s*pay|微信|支付宝|云闪付/i.test(text) ? 'online' : /현금/.test(text) ? 'cash' : /카드|승인|일시불|신용|체크/.test(text) ? 'card' : '';
+  var pay = /카카오\s*페이|네이버\s*페이|토스|페이코|삼성\s*페이|애플\s*페이|apple\s*pay|微信|支付宝|云闪付/i.test(text) ? 'online' : /현금|现金/.test(text) ? 'cash' : /카드|승인|일시불|신용|체크|信用卡|借记卡|储蓄卡/.test(text) ? 'card' : '';
+  var note = mer || '截图记账';
+  var loc = text.match(/(?:交易地金额|原币金额|外币金额)[:：]?[ \t]*([\d,]+(?:\.\d+)?)/);
+  if (cur === 'CNY' && loc && /韩国|韩元|KRW|KOR/i.test(text)) note += ' · 原价 ' + fmtC(num(loc[1].replace(/,/g, '')), 'KRW');
   return { confident: confident, item: { type: income ? 'in' : 'out', amount: cur === 'KRW' ? Math.round(best.a) : r2(best.a), cur:cur,
-    cat: income ? '收入' : ((mer && guessCat(mer, true)) || guessCat(text)), date: shotDate(text), pay: income ? '' : pay, note: mer || '截图记账' } };
+    cat: income ? '收入' : ((mer && guessCat(mer, true)) || guessCat(text)), date: shotDate(text), pay: income ? '' : pay, note: note } };
 }
 function ocrHtml(txt, open){
   return txt ? '<details class="ocr"' + (open ? ' open' : '') + '><summary>截图里认出的文字</summary><pre id="ocr-text">' + esc(String(txt).slice(0, 2000)) + '</pre><button type="button" class="btn sm" data-a="copy-ocr">' + ic('copy') + '复制这段文字</button></details>' : '';
