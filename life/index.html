@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="给一个人过日子的小工具：生活账本、冰箱库存、一周三餐、日常待办、采购清单。">
+<meta name="theme-color" content="#FAFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121714" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="生活管家">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<!-- app:head -->
+<title>纯过日子生活管家</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@500;600;700;800&family=ZCOOL+KuaiLe&display=swap">
+<style>
+/* Layout: brand bar + sticky pill tabs over grid paper; each tab is a 2-column card grid that folds to one column on phones */
+:root{
+  --paper:#FAFBF7; --grid:rgba(46,107,79,.07);
+  --card:#FFFFFF; --card2:#F3F6F1; --line:#E1E8DF;
+  --ink:#1E2A23; --ink2:#46544B; --mute:#78857C;
+  --green:#2E6B4F; --green-ink:#FFFFFF; --mint:#E6F2E8; --mint2:#CDE5D3; --leaf:#5FA77A;
+  --sun:#FFE45C; --sun-on:#2B2400; --sun-soft:#FFF7CF; --sun-ink:#7A5A00;
+  --ok-bg:#E2F3E6; --ok:#23764A; --warn-bg:#FFF2C9; --warn:#8A5D00; --bad-bg:#FDE4E0; --bad:#B3261E;
+  --tomato:#E5533D; --sunicon:#F0A410; --moonicon:#8C83C9;
+  --c1:#5FA77A; --c2:#E5A23D; --c3:#E5533D; --c4:#5F95CF; --c5:#9C7BD0; --c6:#8A9A8F; --c7:#3FB0A8; --c8:#D06BA0;
+  --shadow:0 1px 0 rgba(30,42,35,.03),0 10px 24px -18px rgba(30,42,35,.28);
+  --scrim:rgba(18,28,22,.45);
+  --f-body:"Nunito","PingFang SC","HarmonyOS Sans SC","Noto Sans SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  --f-hand:"Caveat","Segoe Print","Comic Sans MS",cursive;
+  --f-display:"ZCOOL KuaiLe","Nunito","PingFang SC","Noto Sans SC",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#121714; --grid:rgba(140,200,160,.05);
+  --card:#1A211C; --card2:#222B25; --line:#2D3830;
+  --ink:#E6EEE8; --ink2:#BFCBC2; --mute:#8E9B92;
+  --green:#7CC79A; --green-ink:#0F2418; --mint:#1E3226; --mint2:#2B4734; --leaf:#6FBF8C;
+  --sun:#E9CB45; --sun-on:#221C00; --sun-soft:#353016; --sun-ink:#F0DA80;
+  --ok-bg:#1C3325; --ok:#8AD6A6; --warn-bg:#3A3016; --warn:#F2C766; --bad-bg:#3E201C; --bad:#FF907F;
+  --tomato:#FF7A63; --sunicon:#F5B93A; --moonicon:#ABA3E6;
+  --c1:#6FBF8C; --c2:#EDB257; --c3:#FF7A63; --c4:#7EAFE3; --c5:#B396E2; --c6:#9AAA9F; --c7:#5CC7BF; --c8:#E58BBB;
+  --shadow:none; --scrim:rgba(0,0,0,.6);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#121714; --grid:rgba(140,200,160,.05);
+  --card:#1A211C; --card2:#222B25; --line:#2D3830;
+  --ink:#E6EEE8; --ink2:#BFCBC2; --mute:#8E9B92;
+  --green:#7CC79A; --green-ink:#0F2418; --mint:#1E3226; --mint2:#2B4734; --leaf:#6FBF8C;
+  --sun:#E9CB45; --sun-on:#221C00; --sun-soft:#353016; --sun-ink:#F0DA80;
+  --ok-bg:#1C3325; --ok:#8AD6A6; --warn-bg:#3A3016; --warn:#F2C766; --bad-bg:#3E201C; --bad:#FF907F;
+  --tomato:#FF7A63; --sunicon:#F5B93A; --moonicon:#ABA3E6;
+  --c1:#6FBF8C; --c2:#EDB257; --c3:#FF7A63; --c4:#7EAFE3; --c5:#B396E2; --c6:#9AAA9F; --c7:#5CC7BF; --c8:#E58BBB;
+  --shadow:none; --scrim:rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;color:var(--ink);font:15px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--leaf);outline-offset:2px}
+h1,h2,h3,h4{text-wrap:balance}
+.in{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.num,.money{font-variant-numeric:tabular-nums}
+.mute{color:var(--mute)}
+.small{font-size:13px}
+svg.ic{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* header */
+.top .in{display:flex;align-items:center;gap:12px;padding-block:14px 10px}
+.logo{width:44px;height:44px;border-radius:50%;background:var(--mint);border:1px solid var(--mint2);display:grid;place-items:center;flex:none}
+.logo svg{width:26px;height:26px}
+.brand{flex:1;min-width:0;line-height:1.25}
+.brand b{display:block;font-size:19px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;font-size:10.5px;letter-spacing:.16em;color:var(--mute);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acts{display:flex;align-items:center;gap:6px;flex:none}
+.gen{border:1.5px solid var(--ink)!important;border-radius:12px}
+@media (max-width:520px){.brand b{font-size:16px}.brand small{font-size:9px;letter-spacing:.1em}.gen .lbl-long{display:none}.logo{width:38px;height:38px}}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
+.tabs .in{display:flex;gap:8px;overflow-x:auto;padding-block:8px;scrollbar-width:none}
+.tabs .in::-webkit-scrollbar{display:none}
+.tab{flex:1 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:14px;color:var(--ink2);cursor:pointer;white-space:nowrap;text-decoration:none}
+.tab:hover{border-color:var(--mint2)}
+.tab[aria-current="page"]{background:var(--sun);border-color:var(--sun);color:var(--sun-on)}
+
+main.in{padding-block:18px 28px;display:grid;gap:16px}
+.foot{padding-block:4px 32px;color:var(--mute);font-size:12.5px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.foot button{background:none;border:0;padding:0;color:var(--green);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* generic */
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.span2{grid-column:1/-1}
+.cols.even{align-items:stretch}
+.stack{display:grid;gap:16px;min-width:0}
+@media (max-width:780px){.cols{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);min-width:0}
+.card-h{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.card-h h2{font-size:16.5px;margin:0;font-weight:800;flex:1;min-width:8em}
+.card-h .lead{flex-basis:100%;margin:-6px 0 0 42px}
+.bubble{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--sun-soft);color:var(--sun-ink);flex:none}
+.bubble.g{background:var(--mint);color:var(--green)}
+.bubble svg.ic{width:18px;height:18px}
+.badge{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--mint);color:var(--ok);white-space:nowrap;font-weight:700}
+.lead{color:var(--ink2);margin:0 0 12px;font-size:14px}
+.page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.page-title h2{margin:0;font-family:var(--f-display);font-size:clamp(22px,3.6vw,28px);font-weight:400;letter-spacing:.02em}
+.page-title p{margin:2px 0 0;color:var(--ink2);font-size:14px}
+.hl{background:linear-gradient(transparent 58%,var(--sun) 58%,var(--sun) 92%,transparent 92%);padding:0 2px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:700;font-size:14px;line-height:1;padding:10px 14px;border-radius:12px;cursor:pointer;min-height:42px;white-space:nowrap;text-decoration:none}
+.btn:hover{background:var(--card2)}
+.btn.primary{background:var(--green);border-color:var(--green);color:var(--green-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.soft{background:var(--mint);border-color:var(--mint2);color:var(--green)}
+.btn.danger{background:var(--bad-bg);border-color:transparent;color:var(--bad)}
+.btn.sm{min-height:34px;padding:7px 11px;font-size:13px;border-radius:10px}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.icon-btn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;border:0;background:transparent;color:var(--ink2);cursor:pointer;flex:none}
+.icon-btn:hover{background:var(--card2);color:var(--ink)}
+.icon-btn svg.ic{width:20px;height:20px}
+.icon-btn.sm{width:34px;height:34px}
+.icon-btn.sm svg.ic{width:17px;height:17px}
+.icon-btn.armed{background:var(--bad-bg);color:var(--bad)}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+input[type=text],input[type=number],input[type=date],input[type=search],input[type=month],select,textarea{font-size:16px;line-height:1.3;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px;min-height:44px;width:100%;min-width:0}
+textarea{min-height:110px;font-size:13px;font-family:ui-monospace,Menlo,monospace;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--leaf);outline-offset:-1px}
+.field{display:grid;gap:6px;font-size:13px;color:var(--ink2);font-weight:600;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.form{display:grid;gap:14px}
+.hint{font-size:12.5px;color:var(--mute);margin:0}
+.check-row{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
+.check-row input{width:18px;height:18px;accent-color:var(--green)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13.5px;font-weight:600;color:var(--ink2);cursor:pointer;user-select:none;line-height:1.2}
+.chip:hover{border-color:var(--mint2)}
+.chip input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.chip.on,.chip:has(input:checked){background:var(--green);border-color:var(--green);color:var(--green-ink)}
+.chip:has(input:focus-visible){outline:2px solid var(--leaf);outline-offset:2px}
+
+.bar{height:10px;border-radius:999px;background:var(--card2);overflow:hidden;border:1px solid var(--line)}
+.bar>i{display:block;height:100%;border-radius:inherit;background:var(--leaf);min-width:2px}
+.bar.bad>i{background:var(--tomato)}
+.bar.thin{height:8px}
+
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px;white-space:nowrap;line-height:1.35}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.warn{background:var(--warn-bg);color:var(--warn)}
+.tag.bad{background:var(--bad-bg);color:var(--bad)}
+.tag.mute{background:var(--card2);color:var(--mute)}
+
+.empty{border:1.5px dashed var(--line);border-radius:14px;padding:22px 16px;text-align:center;color:var(--mute);font-size:14px;display:grid;gap:10px;justify-items:center}
+.empty b{color:var(--ink2);font-size:15px}
+
+.sample{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;justify-content:space-between;background:var(--sun-soft);border:1px dashed var(--sun-ink);border-radius:14px;padding:10px 14px;font-size:13.5px;color:var(--sun-ink)}
+.sample b{font-weight:800}
+
+/* hero */
+.hero{display:flex;align-items:center;gap:18px;background:var(--mint);border:1px solid var(--mint2);border-radius:22px;padding:24px 26px;overflow:hidden}
+.hero-text{flex:1;min-width:0}
+.hero-date{margin:0;font-size:13px;font-weight:700;color:var(--green)}
+.hero h1{font-family:var(--f-display);font-size:clamp(23px,4.4vw,34px);line-height:1.3;margin:6px 0 6px;font-weight:400;letter-spacing:.02em}
+.hero-sub{margin:0 0 14px;color:var(--ink2)}
+.marker{display:inline-block;font-size:13px;font-weight:800;padding:5px 12px;background:var(--sun);color:var(--sun-on);border-radius:8px;transform:rotate(-1.2deg)}
+.hero-ill{width:min(250px,36%);flex:none;height:auto}
+@media (max-width:540px){.hero{padding:18px;gap:10px}.hero-ill{width:32%}}
+.i-paper{fill:var(--card);stroke:var(--ink);stroke-width:1.6}
+.i-line{stroke:var(--mute);stroke-width:2;stroke-linecap:round;fill:none}
+.i-check{stroke:var(--green);stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.i-bowl{fill:var(--card);stroke:var(--ink);stroke-width:1.6}
+.i-stripe{stroke:var(--c4);stroke-width:3.2;stroke-linecap:round}
+.i-soup{fill:var(--tomato);stroke:var(--ink);stroke-width:1.6}
+.i-egg{fill:var(--sun)}
+.i-pea{fill:var(--leaf)}
+.i-pot{fill:var(--card);stroke:var(--ink);stroke-width:1.6}
+.i-leaf{fill:var(--leaf);stroke:var(--ink);stroke-width:1.4}
+.i-hand{font-family:var(--f-hand);font-size:24px;font-weight:700;fill:var(--ink)}
+
+/* money */
+.money{font-size:34px;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+.money.bad{color:var(--bad)}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.trio>div{padding:0 10px;border-left:1px solid var(--line);min-width:0}
+.trio>div:first-child{border-left:0;padding-left:0}
+.trio span{display:block;font-size:12px;color:var(--mute);line-height:1.35;margin-bottom:2px}
+.trio b{font-size:15.5px;font-weight:800;font-variant-numeric:tabular-nums}
+@media (max-width:420px){.trio b{font-size:14px}}
+
+/* food */
+.mini-foods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mini-food{background:var(--card2);border-radius:14px;padding:10px;display:flex;align-items:center;gap:10px;min-width:0;border:1px solid transparent;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.mini-food:hover{border-color:var(--mint2)}
+.mini-food .emo{font-size:26px;line-height:1;flex:none}
+.mini-food b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-food span{display:block;font-size:12px;color:var(--mute)}
+.mini-food.warn{background:var(--warn-bg)}
+.mini-food.bad{background:var(--bad-bg)}
+@media (max-width:420px){.mini-foods{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.note{margin:12px 0 0;padding:8px 12px;border-radius:10px;background:var(--sun-soft);color:var(--sun-ink);font-size:12.5px;font-weight:600}
+
+.food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.food{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;display:grid;gap:2px;cursor:pointer;min-width:0}
+.food:hover{border-color:var(--mint2)}
+.food .emo{font-size:34px;line-height:1.1;margin-bottom:6px}
+.food .tag{position:absolute;top:12px;right:12px}
+.food .nm{font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:36px}
+.food .nm small{font-weight:700;font-size:14px;color:var(--ink2);margin-left:4px}
+.food .exp{font-size:12px;color:var(--mute);padding-right:34px;line-height:1.4}
+.food .minus{position:absolute;right:8px;bottom:8px;width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:var(--card2);display:grid;place-items:center;cursor:pointer;color:var(--ink2)}
+.food .minus:hover{color:var(--ink);border-color:var(--mint2)}
+.food.out{opacity:.7}
+
+/* recipe suggestions + lists */
+.list{display:grid;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.li{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--card);min-width:0}
+.li:last-child{border-bottom:0}
+button.li{width:100%;border-left:0;border-right:0;border-top:0;text-align:left;cursor:pointer;font:inherit;color:inherit}
+button.li:last-child{border-bottom:0}
+button.li:hover{background:var(--card2)}
+.li .emo{font-size:26px;line-height:1;flex:none;width:34px;text-align:center}
+.li .tx{flex:1;min-width:0}
+.li .tx b{display:block;font-size:14.5px}
+.li .tx small{display:block;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ledger */
+.tiles2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;min-width:0}
+.tile span{display:block;font-size:12.5px;color:var(--mute);font-weight:600}
+.tile b{display:block;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.mint{background:var(--mint);border-color:var(--mint2)}
+.tile.mint b{font-size:28px}
+.tile.bad b{color:var(--bad)}
+.cat-bars{display:grid;gap:14px}
+.cat-bar .between{font-size:14px;margin-bottom:6px}
+.cat-bar .between b{font-weight:800}
+.cat-bar .between span{font-variant-numeric:tabular-nums;color:var(--ink2);font-size:13px}
+.cat-bar .over{color:var(--bad);font-weight:700}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.month-nav{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:2px}
+.month-nav b{min-width:7.5em;text-align:center;font-size:14px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card2);border-radius:12px;padding:3px;gap:3px}
+.seg label{position:relative;text-align:center;padding:8px 6px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;color:var(--ink2)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.amount-in{font-size:26px!important;font-weight:800;font-variant-numeric:tabular-nums;min-height:54px!important}
+.day-h{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mute);font-weight:700;padding:12px 2px 6px}
+.rec{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.rec:last-child{border-bottom:0}
+.rec .tx{flex:1;min-width:0}
+.rec .tx b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.rec .tx small{color:var(--mute);font-size:12px}
+.rec .amt{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rec .amt.in{color:var(--ok)}
+.rec .amt.save{color:var(--c4)}
+
+/* meals */
+.meals-grid{display:grid;grid-template-columns:minmax(0,1fr) 370px;gap:16px;align-items:start}
+@media (max-width:900px){.meals-grid{grid-template-columns:minmax(0,1fr)}}
+@media (min-width:901px){.rp-card{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px)}}
+.days{display:flex;align-items:center;gap:6px;margin-bottom:14px}
+.days .scroller{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:2px}
+.days .scroller::-webkit-scrollbar{display:none}
+.day{flex:1 1 0;min-width:70px;padding:8px 4px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:13px;cursor:pointer;white-space:nowrap;color:var(--ink2);font-weight:600;line-height:1.25;text-align:center}
+.day small{display:block;font-size:11px;color:var(--mute);font-weight:600}
+.day.on{background:var(--mint);border-color:var(--leaf);color:var(--green);font-weight:800}
+.day.on small{color:var(--green)}
+.meal-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.meal{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:14px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;min-height:200px;min-width:0}
+.meal:hover{border-color:var(--mint2)}
+.meal.on{border-color:var(--leaf);background:var(--mint)}
+.meal .lab{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px}
+.meal .lab .sun{color:var(--sunicon)}
+.meal .lab .moon{color:var(--moonicon)}
+.meal .nm{font-size:14.5px;font-weight:600;color:var(--ink2);overflow-wrap:anywhere}
+.meal .nm.none{color:var(--mute);font-weight:500}
+.plate{width:88px;height:88px;border-radius:50%;background:var(--card);border:7px solid var(--card2);box-shadow:inset 0 0 0 1px var(--line),0 0 0 1px var(--line);display:grid;place-items:center;font-size:42px;line-height:1;align-self:center;margin-top:auto;flex:none}
+.plate.lg{width:96px;height:96px;font-size:48px}
+.plate.dash{border-style:dashed;border-color:var(--line);font-size:26px;color:var(--mute)}
+@media (max-width:480px){.meal{padding:10px;min-height:170px}.plate{width:66px;height:66px;font-size:32px;border-width:5px}.meal .lab{font-size:13px}.meal .nm{font-size:13px}}
+.week-wrap{overflow-x:auto}
+.week{width:100%;border-collapse:collapse;font-size:13px}
+.week td:first-child small{display:block;font-weight:600;color:var(--mute)}
+@media (max-width:480px){.week{font-size:12px}.week th,.week td{padding:8px 4px}}
+.week th,.week td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.week th{font-size:12px;color:var(--mute);font-weight:700}
+.week tr.on td{background:var(--mint)}
+.week td:first-child{white-space:nowrap;font-weight:700;cursor:pointer}
+.week td.cell{cursor:pointer}
+.week td.cell:hover{color:var(--green)}
+.rp-top{display:flex;align-items:center;gap:14px;margin:4px 0 6px}
+.rp-meta{display:grid;gap:8px;min-width:0}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:var(--mint);color:var(--green);font-size:13px;font-weight:700;justify-self:start}
+.rp h3{font-size:21px;margin:0;font-weight:800}
+.rp h4{font-size:15px;margin:16px 0 6px;font-weight:800}
+.slot-lab{font-size:12.5px;font-weight:700;color:var(--mute)}
+.ing{width:100%;border-collapse:collapse;font-size:14px}
+.ing td{padding:7px 0;border-bottom:1px dashed var(--line)}
+.ing td:nth-child(2){text-align:right;padding-right:10px}
+.ing td.num{text-align:right;width:5.5em;font-weight:700}
+.season{font-size:13px;color:var(--ink2);margin:8px 0 0}
+.season b{margin-right:6px}
+.steps{list-style:none;padding:0;margin:0;display:grid;gap:10px;counter-reset:s;font-size:14px}
+.steps li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:start}
+.steps li::before{counter-increment:s;content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--green);color:var(--green-ink);display:grid;place-items:center;font-size:12px;font-weight:800;margin-top:-1px}
+.rp-actions{display:grid;gap:8px;margin-top:16px}
+.plan-it{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;font-weight:700}
+@media (max-width:480px){.plan-it{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.plan-it>span{grid-column:1/-1}.plan-it>button{grid-column:1/-1}}
+
+/* todos */
+.todo-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+@media (max-width:860px){.todo-grid{grid-template-columns:minmax(0,1fr)}}
+.todo-add{display:grid;grid-template-columns:minmax(0,1fr) 150px 110px auto;gap:8px}
+@media (max-width:640px){.todo-add{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.todo-add>input[type=text]{grid-column:1/-1}.todo-add>button{grid-column:1/-1}}
+.todo{display:flex;align-items:center;gap:12px;padding:11px 12px 11px 14px;border-bottom:1px solid var(--line);background:var(--card);min-width:0}
+.todo:last-child{border-bottom:0}
+.check{width:26px;height:26px;border-radius:8px;border:2px solid var(--mute);display:grid;place-items:center;background:var(--card);cursor:pointer;flex:none;color:transparent;padding:0}
+.check svg.ic{width:16px;height:16px;stroke-width:3}
+.check.on{background:var(--green);border-color:var(--green);color:var(--green-ink)}
+.todo .tx{flex:1;min-width:0;overflow-wrap:anywhere}
+.todo .tx .meta{display:inline-flex;gap:6px;margin-left:6px;vertical-align:1px}
+.todo.done .tx>span:first-child{color:var(--mute);text-decoration:line-through}
+.todo-edit{display:grid;grid-template-columns:minmax(0,1fr) 150px 110px auto auto;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--card2)}
+@media (max-width:640px){.todo-edit{grid-template-columns:1fr 1fr}.todo-edit>input[type=text]{grid-column:1/-1}}
+.big-frac{font-size:42px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.big-frac small{font-size:22px;color:var(--mute);font-weight:700}
+.cheer{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;color:var(--green);background:var(--mint);padding:4px 10px;border-radius:8px}
+.hand{font-family:var(--f-display);font-size:21px;color:var(--ink2);line-height:1.45;margin:0}
+
+/* stats */
+.stats4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stats4>div{background:var(--card2);border-radius:14px;padding:12px;min-width:0}
+.stats4 b{display:block;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.stats4 span{font-size:12px;color:var(--mute);font-weight:600}
+@media (max-width:480px){.stats4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* sheet */
+.sheet-wrap{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.sheet-bg{position:absolute;inset:0;background:var(--scrim)}
+.sheet{--sheet-pb:20px;position:relative;background:var(--card);border-radius:22px;width:min(560px,100%);max-height:min(88vh,820px);max-height:min(88dvh,820px);overflow:auto;overscroll-behavior:contain;padding:20px 20px var(--sheet-pb);box-shadow:0 24px 60px -20px rgba(0,0,0,.45)}
+@media (max-width:640px){.sheet-wrap{align-items:flex-end;padding:0}.sheet{--sheet-pb:calc(16px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;width:100%;max-height:85vh;max-height:85dvh;padding-top:14px;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}.sheet::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}}
+.sheet-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sheet-h h3{flex:1;margin:0;font-size:19px;font-weight:800;min-width:0}
+.sheet-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:4px}
+/* the save row stays pinned to the bottom of a long sheet */
+.sheet .sheet-actions{position:sticky;bottom:calc(-1 * var(--sheet-pb));z-index:2;background:var(--card);margin-bottom:calc(-1 * var(--sheet-pb));padding:12px 0 var(--sheet-pb);border-top:1px solid var(--line)}
+.sheet-actions .btn.primary{flex:1 1 160px}
+.bought-row{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.bd-row{display:grid;grid-template-columns:minmax(0,1fr) 120px 40px;gap:8px;align-items:center}
+.q-res{display:grid;gap:14px;margin-top:14px}
+.q-res h4{margin:0 0 6px;font-size:12.5px;color:var(--mute)}
+.pick-list{display:grid;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.custom-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+
+/* money in two currencies + auto entry */
+.seg.btns{display:inline-flex;gap:3px}
+.seg.btns button{border:0;background:transparent;padding:7px 11px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;color:var(--ink2);white-space:nowrap}
+.seg.btns button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg.cur2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.page-title .row{gap:8px}
+.amt-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}
+.amt-row .seg{min-height:54px;align-items:stretch}
+.amt-row .seg label{display:grid;place-items:center;padding:6px 10px}
+.tile small.plus{display:block;font-size:15px;font-weight:800;color:var(--ink2);font-variant-numeric:tabular-nums;line-height:1.3}
+.rate-chip{display:inline-flex;align-items:center;gap:5px;margin-top:6px;border:0;background:transparent;padding:0;color:var(--green);font-weight:700;font-size:12.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left}
+.rate-chip svg.ic{width:14px;height:14px}
+.btn.big{min-height:52px;font-size:16px}
+label.btn{cursor:pointer}
+.say{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}
+.say textarea{font-family:var(--f-body);font-size:16px;min-height:76px}
+.rec .amt small{display:block;font-size:11.5px;color:var(--mute);font-weight:600;text-align:right}
+.rv-list{display:grid;gap:10px}
+.rv{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card2)}
+.rv.dup{border-color:var(--warn)}
+.rv-amt{display:grid;grid-template-columns:minmax(0,1fr) 116px;gap:8px}
+.rv-amt input{font-size:20px!important;font-weight:800;font-variant-numeric:tabular-nums}
+.thumbs{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.thumbs img{height:120px;width:auto;max-width:none;border-radius:10px;border:1px solid var(--line);flex:none;object-fit:cover}
+.loading{display:flex;align-items:center;gap:12px;padding:16px 2px;color:var(--ink2);font-weight:700}
+.spin{width:22px;height:22px;border-radius:50%;border:3px solid var(--mint2);border-top-color:var(--green);animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
+.rate-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;font-weight:700}
+.rate-row input{font-size:22px;font-weight:800}
+.phone-only{display:none}
+.quick-row{gap:8px}
+.quick-row>*{flex:1 1 0}
+@media (max-width:780px){.phone-only{display:flex}}
+.link-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:10px 0 0;color:var(--green);font-weight:700;font-size:13.5px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-align:left}
+.link-btn svg.ic{width:16px;height:16px}
+.copy-row{display:flex;gap:8px;align-items:center;margin:6px 0 4px}
+.copy-row code{flex:1;min-width:0;overflow-wrap:anywhere;background:var(--card2);border:1px solid var(--line);padding:8px 10px;border-radius:10px;font-size:12.5px;font-family:ui-monospace,Menlo,monospace}
+.sh-h{margin:18px 0 8px;font-size:15px;font-weight:800}
+details.ocr{margin-top:12px;font-size:13px;color:var(--ink2)}
+details.ocr summary{cursor:pointer;font-weight:700}
+details.ocr pre{white-space:pre-wrap;font-size:12px;max-height:180px;overflow:auto;background:var(--card2);padding:8px 10px;border-radius:8px;margin:8px 0 0}
+.toast-btn{margin-left:10px;border:0;border-radius:8px;padding:5px 10px;background:var(--sun);color:var(--sun-on);font-weight:800;font-size:13px;cursor:pointer}
+.chip-row{display:flex;flex-wrap:wrap;gap:4px 14px}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none}
+.steps.help{margin:6px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:12px;font-size:14px;font-weight:700;z-index:70;max-width:calc(100% - 32px);box-shadow:0 10px 30px -10px rgba(0,0,0,.5);text-align:center}
+@media (prefers-reduced-motion:no-preference){.toast{animation:pop .22s ease-out}.sheet{animation:up .22s ease-out}@keyframes pop{from{opacity:0;transform:translate(-50%,8px)}}@keyframes up{from{opacity:0;transform:translateY(16px)}}}
+</style>
+<!-- /app:head -->
+</head>
+<body>
+<!-- app:body -->
+<div class="app">
+  <header class="top">
+    <div class="in">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><g fill="var(--green)"><circle cx="12" cy="7.4" r="3.9"/><circle cx="16.6" cy="12" r="3.9"/><circle cx="12" cy="16.6" r="3.9"/><circle cx="7.4" cy="12" r="3.9"/></g><circle cx="12" cy="12" r="2.1" fill="var(--sun)"/></svg></div>
+      <div class="brand"><b>纯过日子生活管家</b><small>The little joys of everyday</small></div>
+      <div class="acts">
+        <button class="icon-btn" data-a="search" aria-label="搜索" title="搜索"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
+        <button class="btn sm gen" data-a="gen" title="按冰箱食材生成本周三餐" aria-label="一键生成本周三餐"><svg class="ic" viewBox="0 0 24 24"><path d="M11 3.5 12.7 8l4.5 1.7-4.5 1.7L11 16l-1.7-4.6L4.8 9.7 9.3 8z"/><path d="M18 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><span class="lbl-long">一键生成</span></button>
+        <button class="icon-btn" data-a="backup" aria-label="备份与恢复" title="备份与恢复"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/></svg></button>
+      </div>
+    </div>
+  </header>
+  <nav class="tabs" aria-label="功能"><div class="in" id="tabs"></div></nav>
+  <main class="in" id="main"><div class="empty"><b>正在打开你的生活管家…</b></div></main>
+  <footer class="in foot"><span id="sync-note">数据保存在这台设备上</span><button data-a="backup">备份与恢复</button></footer>
+</div>
+<div class="sheet-wrap" id="sheet" hidden><div class="sheet-bg" data-a="close"></div><div class="sheet" id="sheet-box" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<input type="file" id="photo-in" class="vh" accept="image/*" multiple tabindex="-1" aria-hidden="true">
+<noscript><p style="padding:16px">需要开启 JavaScript 才能使用生活管家。</p></noscript>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------------- utils ---------------- */
+var $ = function(s, r){ return (r||document).querySelector(s); };
+var $$ = function(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); };
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function uid(){ return Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-5); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function iso(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function parse(s){ var p = String(s).split('-').map(Number); return new Date(p[0], (p[1]||1)-1, p[2]||1); }
+function today(){ return iso(new Date()); }
+function addDays(s, n){ var d = parse(s); d.setDate(d.getDate()+n); return iso(d); }
+function diffDays(a, b){ return Math.round((parse(a) - parse(b)) / 864e5); }
+function monthOf(s){ return String(s).slice(0,7); }
+function addMonths(ym, n){ var p = ym.split('-').map(Number); var d = new Date(p[0], p[1]-1+n, 1); return d.getFullYear()+'-'+pad(d.getMonth()+1); }
+var WEEK = ['日','一','二','三','四','五','六'];
+function md(s){ var d = parse(s); return (d.getMonth()+1)+'月'+pad(d.getDate())+'日'; }
+function wk(s){ return '星期'+WEEK[parse(s).getDay()]; }
+function wkShort(s){ return '周'+WEEK[parse(s).getDay()]; }
+function r2(n){ return Math.round(n*100)/100; }
+function money(n){ var v = r2(n); return (v < 0 ? '-¥' : '¥') + Math.abs(v).toLocaleString('zh-CN',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function num(v){ var n = parseFloat(String(v == null ? '' : v).replace(/[^\d.\-]/g,'')); return isFinite(n) ? n : 0; }
+function fmtQty(a, u){
+  u = u || '';
+  if (a === 0.5 && !/^[a-z]/i.test(u)) return '半' + u;
+  if (a === 0.25 && !/^[a-z]/i.test(u)) return '1/4 ' + u;
+  var n = Math.round(a*100)/100;
+  return n + (/^[a-z]/i.test(u) ? ' ' : '') + u;
+}
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+function rng(seed){ var a = seed >>> 0; return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+var ICONS = {
+  home:'<path d="M3.5 10.5 12 3.8l8.5 6.7V19a1.5 1.5 0 0 1-1.5 1.5h-4v-6h-6v6H5A1.5 1.5 0 0 1 3.5 19z"/>',
+  wallet:'<path d="M4 7.5h15a1.5 1.5 0 0 1 1.5 1.5v9.5A1.5 1.5 0 0 1 19 20H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M4 7.5V6.8A2.8 2.8 0 0 1 6.8 4H16v3.5"/><path d="M16 13.8h1.5"/>',
+  fridge:'<rect x="6" y="2.5" width="12" height="19" rx="2.2"/><path d="M6 10h12M9.5 5.5v2M9.5 13v3"/>',
+  bowl:'<path d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0z"/><path d="M8.5 8c0-1.3 1-1.7 1-3M12.5 8c0-1.3 1-1.7 1-3"/>',
+  todo:'<rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="m8 12.2 2.8 2.8L16.2 9.5"/>',
+  cart:'<path d="M3 4h2.2l2.2 10.6a1.2 1.2 0 0 0 1.2 1h8.6a1.2 1.2 0 0 0 1.2-.9L20.5 8H6.1"/><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/>',
+  spark:'<path d="M11 3.5 12.7 8l4.5 1.7-4.5 1.7L11 16l-1.7-4.6L4.8 9.7 9.3 8z"/><path d="M18 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  minus:'<path d="M6 12h12"/>',
+  trash:'<path d="M4.5 7h15M10 4h4M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7M10 11v6M14 11v6"/>',
+  edit:'<path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="m14 8 3 3"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  left:'<path d="m14.5 6-6 6 6 6"/>',
+  right:'<path d="m9.5 6 6 6-6 6"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  moon:'<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  check:'<path d="m5.5 12.5 4 4 9-9"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/>',
+  swap:'<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+  leaf:'<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19 13 11"/>',
+  repeat:'<path d="M4 11V9a3 3 0 0 1 3-3h12l-3-3M20 13v2a3 3 0 0 1-3 3H5l3 3"/>',
+  camera:'<path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.2l1.6-2.2h5.4L16.3 7h2.2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.7" r="3.4"/>',
+  refresh:'<path d="M19.5 11A7.5 7.5 0 0 0 6 7l-1.5 1.5M4.5 4.5v4h4M4.5 13A7.5 7.5 0 0 0 18 17l1.5-1.5M19.5 19.5v-4h-4"/>'
+};
+function ic(n, cls){ return '<svg class="ic ' + (cls||'') + '" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n]||'') + '</svg>'; }
+
+/* ---------------- catalog ---------------- */
+// name: [emoji, unit, keep days, place]
+var FOODS = {
+  '鸡蛋':['🥚','个',21,'冷藏'], '番茄':['🍅','个',7,'冷藏'], '土豆':['🥔','个',21,'常温'], '鸡胸肉':['🍗','g',3,'冷藏'],
+  '生菜':['🥬','颗',4,'冷藏'], '牛奶':['🥛','ml',7,'冷藏'], '面条':['🍜','g',180,'常温'], '大米':['🍚','g',365,'常温'],
+  '米饭':['🍚','碗',2,'冷藏'], '吐司':['🍞','片',5,'常温'], '香蕉':['🍌','根',5,'常温'], '蓝莓':['🫐','g',5,'冷藏'],
+  '酸奶':['🥛','g',14,'冷藏'], '燕麦':['🥣','g',180,'常温'], '青椒':['🫑','个',7,'冷藏'], '西兰花':['🥦','颗',5,'冷藏'],
+  '虾仁':['🦐','g',90,'冷冻'], '青菜':['🥬','g',3,'冷藏'], '香菇':['🍄','朵',5,'冷藏'], '胡萝卜':['🥕','根',14,'冷藏'],
+  '豆腐':['🫘','块',3,'冷藏'], '猪肉末':['🥩','g',2,'冷藏'], '白菜':['🥬','颗',14,'冷藏'], '茄子':['🍆','根',5,'冷藏'],
+  '牛肉':['🥩','g',3,'冷藏'], '洋葱':['🧅','个',30,'常温'], '紫菜':['🌿','g',180,'常温'], '黄瓜':['🥒','根',5,'冷藏'],
+  '排骨':['🍖','g',3,'冷藏'], '玉米':['🌽','根',5,'冷藏'], '水饺':['🥟','个',90,'冷冻'], '鸡翅':['🍗','个',3,'冷藏'],
+  '南瓜':['🎃','g',30,'常温'], '小米':['🌾','g',365,'常温'], '面粉':['🌾','g',365,'常温'], '葱':['🌱','根',7,'冷藏'],
+  '可乐':['🥤','罐',180,'常温'], '苹果':['🍎','个',14,'冷藏'], '大蒜':['🧄','瓣',60,'常温'], '橙子':['🍊','个',14,'常温']
+};
+var SKIP_BUY = {'米饭':1};
+
+var RECIPES = [
+  {id:'milk-egg', n:'牛奶 + 鸡蛋', e:'🥛', m:'b', t:10, tags:['快手','清淡'], ing:[['牛奶',250,'ml'],['鸡蛋',1,'个']], s:'不用调料', st:['鸡蛋冷水下锅，水开后再煮 8 分钟。','牛奶加热到温热，别煮沸。','剥好鸡蛋配牛奶，有水果再加一个。']},
+  {id:'oat-cup', n:'香蕉燕麦牛奶杯', e:'🥣', m:'b', t:5, tags:['快手','清淡','减脂'], ing:[['燕麦',40,'g'],['牛奶',200,'ml'],['香蕉',1,'根']], s:'可加少许蜂蜜', st:['燕麦倒进杯子，加入牛奶。','微波炉中火 1 分半；也可以前一晚泡好放冷藏。','香蕉切片铺在上面。']},
+  {id:'egg-toast', n:'鸡蛋生菜三明治', e:'🥪', m:'b', t:10, tags:['快手','家常'], ing:[['吐司',2,'片'],['鸡蛋',1,'个'],['生菜',0.25,'颗'],['番茄',0.5,'个']], s:'盐、黑胡椒、沙拉酱', st:['平底锅少油煎一个鸡蛋，撒点盐和黑胡椒。','吐司放锅里烘到微黄。','叠上生菜、番茄片、煎蛋，对角切开。']},
+  {id:'millet-congee', n:'小米南瓜粥', e:'🍠', m:'b', t:30, tags:['清淡','暖胃'], ing:[['小米',50,'g'],['南瓜',150,'g']], s:'不用调料', st:['小米淘洗一遍，南瓜去皮切小块。','加 600ml 水大火煮开。','转小火煮 25 分钟，中间搅几下防粘锅。']},
+  {id:'scallion-pancake', n:'葱花鸡蛋饼', e:'🥞', m:'b', t:15, tags:['快手','家常'], ing:[['面粉',60,'g'],['鸡蛋',2,'个'],['葱',1,'根']], s:'盐', st:['面粉、鸡蛋、葱花、一小撮盐和 120ml 水调成稀面糊。','平底锅刷薄油，倒入面糊转匀。','小火煎到凝固再翻面，两面金黄出锅。']},
+  {id:'yogurt-bowl', n:'酸奶水果碗', e:'🍓', m:'b', t:5, tags:['快手','清淡','减脂'], ing:[['酸奶',150,'g'],['香蕉',1,'根'],['蓝莓',30,'g'],['燕麦',20,'g']], s:'不用调料', st:['酸奶倒进碗里。','香蕉切片，和蓝莓一起铺上。','撒一把燕麦，马上吃口感最好。']},
+  {id:'tomato-egg-noodle', n:'番茄鸡蛋面', e:'🍜', m:'ld', t:15, tags:['快手','家常','暖胃'], ing:[['番茄',1,'个'],['鸡蛋',2,'个'],['面条',100,'g']], s:'盐、生抽、葱花', st:['番茄炒软，加入鸡蛋炒散。','加入适量清水煮开。','放入面条煮至熟，调味即可。']},
+  {id:'potato-chicken', n:'土豆烧鸡肉', e:'🍲', m:'ld', t:30, tags:['下饭','家常'], ing:[['鸡胸肉',200,'g'],['土豆',1,'个']], s:'生抽、老抽、姜片、糖', st:['鸡胸肉切块，用生抽和姜片抓匀腌 10 分钟。','土豆去皮切滚刀块。','少油把鸡肉炒到变白，下土豆翻炒。','加生抽、少许老抽和糖，倒水没过食材，小火焖 15 分钟收汁。']},
+  {id:'tomato-egg-rice', n:'番茄炒蛋盖饭', e:'🍛', m:'ld', t:15, tags:['快手','下饭','家常'], ing:[['番茄',2,'个'],['鸡蛋',2,'个'],['米饭',1,'碗']], s:'盐、糖、葱花', st:['鸡蛋打散，热油炒到刚凝固盛出。','番茄切块下锅炒出汁，加一点糖和盐。','倒回鸡蛋翻匀，浇在米饭上。']},
+  {id:'pepper-potato', n:'青椒土豆丝', e:'🥔', m:'ld', t:20, tags:['下饭','家常','素食'], ing:[['土豆',1,'个'],['青椒',1,'个']], s:'盐、醋、蒜', st:['土豆切丝泡水洗掉淀粉，青椒切丝。','热油爆香蒜末，下土豆丝大火翻炒 2 分钟。','加青椒丝和盐，沿锅边淋一点醋出锅。']},
+  {id:'garlic-lettuce', n:'蒜蓉生菜', e:'🥬', m:'ld', t:8, tags:['快手','清淡','素食','减脂'], ing:[['生菜',1,'颗'],['大蒜',3,'瓣']], s:'盐、蚝油', st:['生菜掰开洗净，沥干水。','热油爆香蒜末。','下生菜大火快炒 1 分钟，加盐和少许蚝油出锅。']},
+  {id:'chicken-salad', n:'鸡胸肉蔬菜沙拉', e:'🥗', m:'ld', t:20, tags:['减脂','清淡'], ing:[['鸡胸肉',150,'g'],['生菜',0.5,'颗'],['番茄',1,'个'],['鸡蛋',1,'个']], s:'黑胡椒、油醋汁', st:['鸡胸肉冷水下锅，加姜片煮 12 分钟，放凉撕成条。','鸡蛋煮熟切块，生菜撕小片，番茄切块。','全部拌在一起，淋上油醋汁。']},
+  {id:'cola-wings', n:'可乐鸡翅', e:'🍗', m:'d', t:30, tags:['下饭'], ing:[['鸡翅',6,'个'],['可乐',1,'罐']], s:'生抽、老抽、姜片', st:['鸡翅两面划刀，冷水下锅焯一下捞出。','少油把鸡翅两面煎黄。','倒入可乐没过鸡翅，加生抽、少许老抽和姜片。','中火煮 15 分钟，大火收汁。']},
+  {id:'shrimp-broccoli', n:'西兰花炒虾仁', e:'🦐', m:'ld', t:15, tags:['减脂','清淡','快手'], ing:[['西兰花',1,'颗'],['虾仁',150,'g']], s:'盐、蒜、料酒', st:['西兰花掰小朵，开水焯 1 分钟捞出。','虾仁用料酒和少许盐腌 5 分钟。','热油爆香蒜末，虾仁炒到变色，加西兰花翻匀调味。']},
+  {id:'mushroom-greens', n:'香菇青菜', e:'🍄', m:'ld', t:12, tags:['清淡','素食','快手'], ing:[['青菜',300,'g'],['香菇',4,'朵']], s:'盐、蚝油', st:['香菇切片，青菜洗净对半切。','先炒香菇到出水变软。','下青菜大火翻炒，加盐和蚝油。']},
+  {id:'fried-rice', n:'鸡蛋炒饭', e:'🍳', m:'ld', t:12, tags:['快手','家常'], ing:[['米饭',1,'碗'],['鸡蛋',2,'个'],['胡萝卜',0.5,'根'],['葱',1,'根']], s:'盐、生抽', st:['隔夜饭打散，胡萝卜切小丁，葱切花。','鸡蛋炒散盛出，再炒胡萝卜丁。','下米饭炒到粒粒分开，倒回鸡蛋，加盐和生抽，撒葱花。']},
+  {id:'mapo-tofu', n:'麻婆豆腐', e:'🌶️', m:'ld', t:20, tags:['下饭','重口'], ing:[['豆腐',1,'块'],['猪肉末',80,'g']], s:'郫县豆瓣酱、花椒粉、蒜、淀粉', st:['豆腐切块，淡盐水里焯 2 分钟。','肉末炒散，加一勺豆瓣酱炒出红油。','加水和豆腐煮 3 分钟，水淀粉勾芡，撒花椒粉。']},
+  {id:'cabbage-tofu-soup', n:'白菜豆腐汤', e:'🍲', m:'ld', t:15, tags:['清淡','暖胃','素食'], ing:[['白菜',0.25,'颗'],['豆腐',0.5,'块']], s:'盐、白胡椒、香油', st:['白菜切段，豆腐切块。','少油炒软白菜梗，加 500ml 水煮开。','下豆腐和白菜叶煮 5 分钟，加盐、胡椒，滴香油。']},
+  {id:'pork-eggplant', n:'肉末茄子', e:'🍆', m:'ld', t:20, tags:['下饭','家常'], ing:[['茄子',1,'根'],['猪肉末',80,'g']], s:'生抽、蚝油、蒜、糖', st:['茄子切条，少油煎到软塌盛出。','肉末炒散，加蒜末炒香。','倒回茄子，加生抽、蚝油和一点糖，翻匀收汁。']},
+  {id:'onion-beef', n:'洋葱炒牛肉', e:'🥩', m:'d', t:20, tags:['下饭'], ing:[['牛肉',150,'g'],['洋葱',1,'个']], s:'生抽、黑胡椒、淀粉', st:['牛肉逆纹切片，加生抽、淀粉和少许油抓匀，腌 10 分钟。','大火快炒牛肉到变色盛出。','炒洋葱到微软，倒回牛肉，撒黑胡椒翻匀。']},
+  {id:'seaweed-soup', n:'紫菜蛋花汤', e:'🥣', m:'ld', t:8, tags:['快手','清淡'], ing:[['紫菜',5,'g'],['鸡蛋',1,'个']], s:'盐、香油、葱花', st:['水烧开放入紫菜。','鸡蛋打散，沿锅边慢慢淋入，先别搅。','加盐，滴香油，撒葱花。']},
+  {id:'carrot-egg', n:'胡萝卜炒蛋', e:'🥕', m:'ld', t:12, tags:['快手','家常'], ing:[['胡萝卜',1,'根'],['鸡蛋',2,'个']], s:'盐', st:['胡萝卜切丝，鸡蛋打散。','先炒鸡蛋盛出。','胡萝卜丝炒软，倒回鸡蛋，加盐翻匀。']},
+  {id:'cucumber-salad', n:'拍黄瓜', e:'🥒', m:'ld', t:5, tags:['快手','清淡','素食','减脂'], ing:[['黄瓜',1,'根'],['大蒜',2,'瓣']], s:'盐、醋、生抽、香油', st:['黄瓜拍裂切段，撒少许盐腌 5 分钟，倒掉腌出的水。','加蒜末、醋、生抽、香油拌匀。']},
+  {id:'rib-corn-soup', n:'玉米排骨汤', e:'🌽', m:'d', t:70, tags:['暖胃'], ing:[['排骨',300,'g'],['玉米',1,'根'],['胡萝卜',1,'根']], s:'盐、姜片', st:['排骨冷水下锅焯水，撇去浮沫后洗净。','排骨和姜片加 1.5L 水，小火炖 40 分钟。','加玉米段和胡萝卜块再炖 20 分钟，出锅前加盐。']},
+  {id:'dumplings', n:'速冻水饺', e:'🥟', m:'ld', t:10, tags:['快手'], ing:[['水饺',15,'个']], s:'醋、辣椒油', st:['水开下饺子，用勺背推一推防粘。','水再开时加半碗冷水，重复两次。','饺子浮起鼓胀就熟了，配醋吃。']}
+];
+var RMAP = {}; RECIPES.forEach(function(r){ RMAP[r.id] = r; });
+var SLOTS = [['b','早餐','sun'],['l','午餐','sun'],['d','晚餐','moon']];
+var SLOT_NAME = {b:'早餐', l:'午餐', d:'晚餐'};
+var TAGS = ['家常','快手','清淡','下饭','减脂','素食','暖胃','重口'];
+var QUICK_TODOS = ['换床单','洗衣服','倒垃圾','整理冰箱','拖地','交水电费','买日用品','给家里打电话'];
+var CAT_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)','var(--c7)','var(--c8)'];
+var TABS = [['home','生活首页','home'],['ledger','生活账本','wallet'],['fridge','冰箱库存','fridge'],['meals','一周三餐','bowl'],['todo','日常待办','todo'],['shop','采购清单','cart']];
+
+/* ---------------- state ---------------- */
+var LS_KEY = 'chunguo-life-v1';
+var SECTIONS = ['settings','ledger','fridge','meals','todos','shop'];
+var S = null;
+var view = { tab:'home', month: monthOf(today()), mealStart: today(), mealDay: today(), mealSlot: defaultSlot(), fridgeFilter:'all', todoFilter:'today', editTodo:null, lgType:'out', lgCat:null, lgCur:null, pick:null, day: today() };
+function defaultSlot(){ var h = new Date().getHours(); return h < 10 ? 'b' : h < 14 ? 'l' : 'd'; }
+var DEFAULT_RATE = 195;   // 1 人民币 = ? 韩元；用户可以在账本里改
+var CURS = { KRW:{sym:'₩', name:'韩元', dp:0}, CNY:{sym:'¥', name:'人民币', dp:2} };
+var PAYS = [['','不记'],['cash','现金'],['card','刷卡'],['online','线上支付']];
+var PAY_NAME = { cash:'现金', card:'刷卡', online:'线上支付' };
+
+function freshState(){
+  return { v:2,
+    settings:{ sample:false, saveGoal:500000, budgetCur:'KRW', showCur:'split', rate:DEFAULT_RATE, rateAt:'',
+      cats:[{n:'房租水电',b:650000},{n:'买菜做饭',b:250000},{n:'外卖外食',b:200000},{n:'日用品',b:80000},{n:'交通出行',b:70000},{n:'其他',b:150000}],
+      prefs:{ slots:['b','l','d'], maxTime:20, tags:['家常','快手'] }, stats:{} },
+    ledger:[], fridge:[], meals:{}, todos:[], shop:[] };
+}
+function foodItem(name, qty, expire, extra){
+  var c = FOODS[name] || ['🍽️','个',7,'冷藏'];
+  var f = { id:uid(), name:name, emoji:c[0], qty:qty, unit:c[1], expire:expire, place:c[3], added:today() };
+  if (extra) for (var k in extra) f[k] = extra[k];
+  return f;
+}
+function sampleState(){
+  var s = freshState(); s.settings.sample = true;
+  var t = today(), ym = monthOf(t), dmax = +t.slice(8);
+  function day(d){ return ym + '-' + pad(Math.min(d, dmax)); }
+  function L(d, type, cat, amount, note, cur, pay){ return {id:uid(), date:day(d), type:type, cat:cat, amount:amount, note:note, cur:cur||'KRW', pay:pay||''}; }
+  s.ledger = [
+    L(1,'in','收入',2200000,'工资'), L(1,'out','房租水电',550000,'月租 월세','KRW','online'), L(1,'save','储蓄',300000,'月初先存一笔'),
+    L(2,'out','买菜做饭',32800,'이마트 超市买菜','KRW','card'), L(4,'out','外卖外食',21000,'炸鸡外卖 배민','KRW','online'),
+    L(5,'out','日用品',12000,'다이소 收纳盒','KRW','card'), L(6,'out','房租水电',85000,'관리비 水电燃气','KRW','online'),
+    L(7,'out','交通出行',30000,'티머니 充值','KRW','cash'), L(9,'out','外卖外食',4500,'咖啡','KRW','card'),
+    L(11,'out','买菜做饭',18000,'市场 蔬菜水果','KRW','cash'), L(13,'out','日用品',58,'淘宝 衣架','CNY','online'),
+    L(14,'out','其他',15000,'理发','KRW','cash'), L(16,'out','外卖外食',3200,'便利店饭团','KRW','cash'),
+    L(18,'out','买菜做饭',27400,'쿠팡 鸡胸肉 面条','KRW','online'), L(20,'out','其他',199,'朋友生日礼物','CNY','online')
+  ];
+  s.fridge = [
+    foodItem('生菜',1,addDays(t,1)), foodItem('鸡胸肉',200,addDays(t,2)), foodItem('番茄',3,addDays(t,3)),
+    foodItem('牛奶',500,addDays(t,5)), foodItem('青椒',2,addDays(t,6)), foodItem('鸡蛋',6,addDays(t,8)),
+    foodItem('土豆',2,addDays(t,10)), foodItem('面条',300,addDays(t,90))
+  ];
+  s.meals = {}; s.meals[t] = { b:{r:'milk-egg'}, l:{r:'potato-chicken'}, d:{r:'tomato-egg-noodle'} };
+  s.meals = planWeek(s.fridge, s.meals, { start:t, slots:['b','l','d'], maxTime:20, tags:['家常','快手'], keep:true, seed:20261008 });
+  function T(text, d, done, rep){ return {id:uid(), t:text, d:d, done:!!done, doneAt: done ? t : '', rep:rep||''}; }
+  s.todos = [ T('换床单',t), T('补充洗衣液',t), T('锻炼 20 分钟',t,true), T('整理餐桌',t,true), T('早点睡，不刷手机',t,false,'daily'),
+    T('交水电费',addDays(t,2)), T('整理冰箱，看看快过期的',addDays(t,3),false,'weekly') ];
+  s.shop = [ {id:uid(), n:'葱', a:2, u:'根', from:'番茄鸡蛋面', done:false}, {id:uid(), n:'香蕉', a:3, u:'根', from:'', done:false}, {id:uid(), n:'洗衣液', a:1, u:'瓶', from:'', done:false} ];
+  s.settings.stats[ym] = { used:5, wasted:1 };
+  return s;
+}
+function isObj(x){ return x && typeof x === 'object' && !Array.isArray(x); }
+// 第一版的示例数据（全是人民币）不是用户自己的，直接换成新示例
+function isOldSample(settings){ return isObj(settings) && settings.sample && !settings.budgetCur; }
+function normalize(x){
+  var f = freshState(), o = isObj(x) ? x : {};
+  var st = isObj(o.settings) ? o.settings : {};
+  var hadCats = Array.isArray(st.cats) && st.cats.length;
+  var bc = CURS[st.budgetCur] ? st.budgetCur : (hadCats ? 'CNY' : 'KRW');
+  var s = { v:2, settings:{
+      sample: !!st.sample, budgetCur: bc,
+      saveGoal: st.saveGoal != null ? num(st.saveGoal) : (bc === 'KRW' ? 500000 : 1000),
+      showCur: ['split','KRW','CNY'].indexOf(st.showCur) >= 0 ? st.showCur : 'split',
+      rate: num(st.rate) > 0 ? num(st.rate) : DEFAULT_RATE, rateAt: String(st.rateAt || ''),
+      cats: hadCats ? st.cats.filter(function(c){ return c && c.n; }).map(function(c){ return {n:String(c.n), b:num(c.b)}; }) : f.settings.cats,
+      prefs: Object.assign({}, f.settings.prefs, isObj(st.prefs) ? st.prefs : {}),
+      stats: isObj(st.stats) ? st.stats : {} } };
+  if (!s.settings.cats.length) s.settings.cats = f.settings.cats;
+  if (!Array.isArray(s.settings.prefs.slots)) s.settings.prefs.slots = ['b','l','d'];
+  if (!Array.isArray(s.settings.prefs.tags)) s.settings.prefs.tags = [];
+  s.ledger = (Array.isArray(o.ledger) ? o.ledger : []).filter(function(r){ return r && r.date && isFinite(+r.amount); }).map(function(r){
+    var cur = r.cur === 'KRW' ? 'KRW' : 'CNY';
+    return { id:String(r.id||uid()), date:String(r.date).slice(0,10), type: ['in','out','save'].indexOf(r.type) >= 0 ? r.type : 'out', cat:String(r.cat||'其他'),
+      amount: cur === 'KRW' ? Math.round(+r.amount) : r2(+r.amount), cur:cur, pay: PAY_NAME[r.pay] ? r.pay : '', note:String(r.note||'') }; });
+  s.fridge = (Array.isArray(o.fridge) ? o.fridge : []).filter(function(i){ return i && i.name; }).map(function(i){
+    return { id:String(i.id||uid()), name:String(i.name), emoji:String(i.emoji||'🍽️'), qty:num(i.qty), unit:String(i.unit||''), expire:String(i.expire||today()).slice(0,10), place:String(i.place||'冷藏'), added:String(i.added||today()) }; });
+  s.meals = {};
+  var cutoff = addDays(today(), -60);
+  if (isObj(o.meals)) Object.keys(o.meals).forEach(function(d){ if (d >= cutoff && isObj(o.meals[d])) s.meals[d] = o.meals[d]; });
+  s.todos = (Array.isArray(o.todos) ? o.todos : []).filter(function(i){ return i && i.t; }).map(function(i){
+    return { id:String(i.id||uid()), t:String(i.t), d:String(i.d||today()).slice(0,10), done:!!i.done, doneAt:String(i.doneAt||''), rep: i.rep === 'daily' || i.rep === 'weekly' ? i.rep : '' }; });
+  s.shop = (Array.isArray(o.shop) ? o.shop : []).filter(function(i){ return i && i.n; }).map(function(i){
+    return { id:String(i.id||uid()), n:String(i.n), a: i.a != null ? num(i.a) : null, u:String(i.u||''), q:String(i.q||''), from:String(i.from||''), done:!!i.done }; });
+  return s;
+}
+
+/* ---------------- storage: this device, plus the viewer's private store when opened on claude.ai ---------------- */
+var Sync = { col:null, dirty:{}, busy:false, timer:0, empty:false, err:'' };
+function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
+function loadLocal(){ try { var raw = localStorage.getItem(LS_KEY); if (!raw) return null; var o = JSON.parse(raw); return isObj(o) && isOldSample(o.settings) ? null : normalize(o); } catch(e) { return null; } }
+function commit(){
+  var secs = arguments.length ? Array.prototype.slice.call(arguments) : SECTIONS;
+  saveLocal();
+  if (Sync.col){
+    if (Sync.empty){ SECTIONS.forEach(function(k){ Sync.dirty[k] = 1; }); Sync.empty = false; }
+    secs.forEach(function(k){ Sync.dirty[k] = 1; });
+    clearTimeout(Sync.timer); Sync.timer = setTimeout(flush, 700);
+  }
+  render();
+}
+async function writeDoc(k){
+  var body = { json: JSON.stringify(S[k]), at: Date.now() };
+  try { await Sync.col.doc(k).set(body); }
+  catch (e) {
+    if (e && e.code === 'unavailable'){ await sleep(600 + Math.random()*900); await Sync.col.doc(k).set(body); }
+    else throw e;
+  }
+}
+async function flush(){
+  if (Sync.busy || !Sync.col) return;
+  Sync.busy = true;
+  try {
+    var keys;
+    while ((keys = Object.keys(Sync.dirty)).length){
+      var k = keys[0]; delete Sync.dirty[k];
+      try { await writeDoc(k); Sync.err = ''; }
+      catch (e) { Sync.err = (e && e.code) || 'error'; break; }
+    }
+  } finally { Sync.busy = false; syncNote(); }
+}
+function syncNote(){
+  var el = $('#sync-note'); if (!el) return;
+  if (Sync.col){
+    el.textContent = Sync.err === 'quota_exceeded' || Sync.err === 'invalid_argument' ? '账号存储空间满了，先在「备份与恢复」里导出一份，再删掉一些旧账目' :
+      Sync.err ? '这次没同步上，改动先保存在这台设备，下次修改时会再试' : '已保存到你的账号，只有你自己能看到';
+  } else el.textContent = '数据保存在这台设备的浏览器里，换手机或清理浏览器前记得备份';
+}
+async function initCloud(){
+  var c = window.claude;
+  if (!c || typeof c.use !== 'function') return;
+  var db, user, id = null, snaps;
+  try { var both = await Promise.all([c.use('db'), c.use('user')]); db = both[0]; user = both[1]; } catch(e){ return; }
+  if (!db || !user) return;
+  try { id = await user.id(); } catch(e){}
+  if (!id) return;
+  var col;
+  try { col = db.collection('data/users/' + id); snaps = await Promise.all(SECTIONS.map(function(k){ return col.doc(k).get(); })); }
+  catch(e){ return; }
+  Sync.col = col;
+  var next = null;
+  if (snaps.some(function(s){ return s.exists; })){
+    next = {}; SECTIONS.forEach(function(k){ next[k] = S[k]; });
+    snaps.forEach(function(s, i){ if (s.exists){ try { next[SECTIONS[i]] = JSON.parse(s.data().json); } catch(e){} } });
+    if (isOldSample(next.settings)) next = null;
+  }
+  if (next){ S = normalize(next); saveLocal(); render(); }
+  else Sync.empty = true;
+  syncNote();
+}
+
+/* ---------------- derived ---------------- */
+function daysLeft(f){ return diffDays(f.expire, today()); }
+function freshTag(f){
+  var n = daysLeft(f);
+  if (n < 0) return '<span class="tag bad">已过期 ' + (-n) + ' 天</span>';
+  if (n === 0) return '<span class="tag bad">今天到期</span>';
+  if (n <= 3) return '<span class="tag warn">' + n + ' 天后到期</span>';
+  return '<span class="tag ok">剩余 ' + n + ' 天</span>';
+}
+function fridgeSorted(){ return S.fridge.slice().sort(function(a,b){ return a.expire < b.expire ? -1 : a.expire > b.expire ? 1 : 0; }); }
+function fridgeHas(name){ var t = today(); return S.fridge.filter(function(f){ return f.name === name && f.qty > 0 && f.expire >= t; }).reduce(function(s,f){ return s + f.qty; }, 0); }
+function haveSame(name, unit){ var t = today(); return S.fridge.filter(function(f){ return f.name === name && f.unit === unit && f.expire >= t; }).reduce(function(s,f){ return s + f.qty; }, 0); }
+function coverage(r){
+  var have = 0, urg = 0, t = today(), miss = [];
+  r.ing.forEach(function(g){
+    var items = S.fridge.filter(function(f){ return f.name === g[0] && f.qty > 0 && f.expire >= t; });
+    if (!items.length && SKIP_BUY[g[0]]){ have++; return; }
+    if (items.length){ have++; urg += Math.max(0, 5 - Math.min.apply(null, items.map(daysLeft))); }
+    else miss.push(g[0]);
+  });
+  return { have:have, total:r.ing.length, urg:urg, miss:miss };
+}
+function otherCur(c){ return c === 'KRW' ? 'CNY' : 'KRW'; }
+function conv(a, from, to){ if (from === to) return a; var r = S.settings.rate || DEFAULT_RATE; return from === 'KRW' ? a / r : a * r; }
+function fmtC(n, cur){ var c = CURS[cur] || CURS.CNY; var v = c.dp ? r2(n) : Math.round(n); return (v < 0 ? '-' : '') + c.sym + Math.abs(v).toLocaleString('zh-CN', {minimumFractionDigits:c.dp, maximumFractionDigits:c.dp}); }
+function fmtRate(r){ return String(r2(r)); }
+function rateText(){ return '1 人民币 = ' + fmtRate(S.settings.rate) + ' 韩元'; }
+function dispCur(){ return S.settings.showCur === 'split' ? S.settings.budgetCur : S.settings.showCur; }
+function monthStats(ym, cur){
+  cur = cur || dispCur();
+  var recs = S.ledger.filter(function(r){ return monthOf(r.date) === ym; });
+  var raw = { 'in':{KRW:0, CNY:0}, out:{KRW:0, CNY:0}, save:{KRW:0, CNY:0} }, tot = { 'in':0, out:0, save:0 }, byCat = {}, curs = {};
+  recs.forEach(function(r){
+    raw[r.type][r.cur] += r.amount; curs[r.cur] = 1;
+    var v = conv(r.amount, r.cur, cur); tot[r.type] += v;
+    if (r.type === 'out') byCat[r.cat] = (byCat[r.cat] || 0) + v;
+  });
+  var budget = S.settings.cats.reduce(function(a,c){ return a + conv(c.b, S.settings.budgetCur, cur); }, 0);
+  return { recs:recs, cur:cur, raw:raw, income:tot['in'], out:tot.out, saved:tot.save, byCat:byCat, budget:budget, left:budget - tot.out,
+    saveGoal: conv(S.settings.saveGoal, S.settings.budgetCur, cur), mixed: Object.keys(curs).length > 1 || (recs.length > 0 && !curs[cur]) };
+}
+// 分开看：两种钱各自的合计，预算币种排前面
+function splitHtml(o){
+  var b = S.settings.budgetCur, order = [b, otherCur(b)].filter(function(c){ return Math.abs(o[c]) > 0.004; });
+  if (!order.length) return '<b>' + fmtC(0, b) + '</b>';
+  return '<b>' + fmtC(o[order[0]], order[0]) + '</b>' + (order[1] ? '<small class="plus">+ ' + fmtC(o[order[1]], order[1]) + '</small>' : '');
+}
+function splitText(o){
+  return ['KRW','CNY'].filter(function(c){ return Math.abs(o[c]) > 0.004; }).map(function(c){ return fmtC(o[c], c); }).join(' + ');
+}
+function stat(ym){ var st = S.settings.stats[ym] || (S.settings.stats[ym] = {used:0, wasted:0}); return st; }
+function todayTodos(){
+  var t = today();
+  return S.todos.filter(function(x){ return x.d <= t && (!x.done || x.doneAt === t); }).sort(todoSort);
+}
+function todoSort(a, b){ if (a.done !== b.done) return a.done ? 1 : -1; return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; }
+
+/* ---------------- planning ---------------- */
+function consume(vf, r, day){
+  r.ing.forEach(function(g){
+    var need = g[1];
+    vf.filter(function(f){ return f.name === g[0] && f.unit === g[2] && f.qty > 0 && (!day || f.expire >= day); })
+      .sort(function(a,b){ return a.expire < b.expire ? -1 : 1; })
+      .forEach(function(f){ if (need <= 0) return; var take = Math.min(need, f.qty); f.qty = r2(f.qty - take); need = r2(need - take); });
+  });
+}
+function planWeek(fridge, meals, opt){
+  var rnd = rng(opt.seed != null ? opt.seed : (Date.now() & 0x7fffffff));
+  var vf = fridge.map(function(f){ return Object.assign({}, f); });
+  var out = Object.assign({}, meals), used = {};
+  var days = []; for (var i = 0; i < 7; i++) days.push(addDays(opt.start, i));
+  days.forEach(function(day){ out[day] = Object.assign({}, meals[day] || {}); });
+  days.forEach(function(day, i){
+    SLOTS.forEach(function(sl){
+      var e = out[day][sl[0]];
+      if (!e || !e.r || !RMAP[e.r]) return;
+      if (opt.keep || opt.slots.indexOf(sl[0]) < 0){ consume(vf, RMAP[e.r], day); used[e.r] = i; }
+    });
+  });
+  days.forEach(function(day, i){
+    var w = parse(day).getDay(), weekend = w === 0 || w === 6;
+    SLOTS.forEach(function(sl){
+      var k = sl[0];
+      if (opt.slots.indexOf(k) < 0) return;
+      var e = out[day][k];
+      if (e && (e.t || opt.keep)) return;
+      var best = null, bs = -Infinity;
+      RECIPES.forEach(function(r){
+        if (r.m.indexOf(k) < 0) return;
+        var s = 0;
+        r.ing.forEach(function(g){
+          var have = vf.filter(function(f){ return f.name === g[0] && f.qty > 0 && f.expire >= day; });
+          if (have.length){ var left = Math.min.apply(null, have.map(function(f){ return diffDays(f.expire, day); })); s += 3 + Math.max(0, 5 - left) * 1.3; }
+          else s -= 2.2;
+        });
+        if (opt.tags.length && opt.tags.some(function(tg){ return r.tags.indexOf(tg) >= 0; })) s += 2.5;
+        var lim = weekend ? Math.max(opt.maxTime, 75) : opt.maxTime;
+        if (r.t > lim) s -= 10;
+        if (used[r.id] != null) s -= Math.max(0, 12 - Math.abs(i - used[r.id]) * 3);
+        s += rnd() * 2.2;
+        if (s > bs){ bs = s; best = r; }
+      });
+      if (best){ out[day][k] = {r:best.id}; used[best.id] = i; consume(vf, best, day); }
+    });
+  });
+  return out;
+}
+function roundBuy(a, u){ return (u === 'g' || u === 'ml') ? Math.ceil(a/10)*10 : Math.ceil(a - 1e-9); }
+function weekNeeds(start){
+  var need = {}, order = [];
+  for (var i = 0; i < 7; i++){
+    var day = addDays(start, i), m = S.meals[day] || {};
+    SLOTS.forEach(function(sl){
+      var r = m[sl[0]] && m[sl[0]].r && RMAP[m[sl[0]].r]; if (!r) return;
+      r.ing.forEach(function(g){
+        if (SKIP_BUY[g[0]]) return;
+        var key = g[0] + '|' + g[2];
+        if (!need[key]){ need[key] = {n:g[0], u:g[2], a:0, from:[]}; order.push(key); }
+        need[key].a += g[1];
+        if (need[key].from.indexOf(r.n) < 0) need[key].from.push(r.n);
+      });
+    });
+  }
+  var res = [];
+  order.forEach(function(key){
+    var x = need[key], miss = x.a - haveSame(x.n, x.u);
+    if (miss > 0.001) res.push({n:x.n, u:x.u, a:roundBuy(miss, x.u), from:x.from.slice(0,2).join('、')});
+  });
+  return res;
+}
+function missingFor(r){
+  var res = [];
+  r.ing.forEach(function(g){
+    if (SKIP_BUY[g[0]]) return;
+    var miss = g[1] - haveSame(g[0], g[2]);
+    if (miss > 0.001) res.push({n:g[0], u:g[2], a:roundBuy(miss, g[2]), from:r.n});
+  });
+  return res;
+}
+function addShop(items){
+  var added = 0;
+  items.forEach(function(x){
+    var ex = S.shop.find(function(s){ return !s.done && s.n === x.n; });
+    if (ex){ if (x.from && ex.from.indexOf(x.from) < 0) ex.from = ex.from ? ex.from + '、' + x.from : x.from; return; }
+    S.shop.push({id:uid(), n:x.n, a:x.a, u:x.u, q:'', from:x.from||'', done:false}); added++;
+  });
+  return added;
+}
+function shopQty(x){ return x.a != null && x.a > 0 ? fmtQty(x.a, x.u) : (x.q || ''); }
+function cook(r){
+  var used = [], ym = monthOf(today());
+  r.ing.forEach(function(g){
+    var need = g[1], took = 0;
+    S.fridge.filter(function(f){ return f.name === g[0] && f.unit === g[2] && f.qty > 0; })
+      .sort(function(a,b){ return a.expire < b.expire ? -1 : 1; })
+      .forEach(function(f){ if (need <= 0) return; var take = Math.min(need, f.qty); f.qty = r2(f.qty - take); need = r2(need - take); took = r2(took + take); });
+    if (took > 0) used.push(g[0] + ' ' + fmtQty(took, g[2]));
+  });
+  var before = S.fridge.length;
+  S.fridge = S.fridge.filter(function(f){ return f.qty > 0.0001; });
+  stat(ym).used += before - S.fridge.length;
+  return used;
+}
+
+/* ---------------- render ---------------- */
+function render(){
+  if (!S) return;
+  view.day = today();
+  $('#tabs').innerHTML = TABS.map(function(t){
+    return '<a class="tab" href="#' + t[0] + '" data-a="tab" data-tab="' + t[0] + '"' + (view.tab === t[0] ? ' aria-current="page"' : '') + '>' + ic(t[2]) + t[1] + '</a>';
+  }).join('');
+  var html = '';
+  if (S.settings.sample) html += '<div class="sample"><span><b>现在显示的是示例数据</b>，先随便点点看。准备好了就清空，开始记你自己的。</span><button class="btn sm" data-a="clear-sample">清空示例，开始记我的</button></div>';
+  html += ({home:renderHome, ledger:renderLedger, fridge:renderFridge, meals:renderMeals, todo:renderTodo, shop:renderShop}[view.tab] || renderHome)();
+  $('#main').innerHTML = html;
+  syncNote();
+}
+
+function heroArt(){
+  return '<svg class="hero-ill" viewBox="0 0 250 140" aria-hidden="true">' +
+    '<defs><clipPath id="bowl-clip"><path d="M92 84 A46 42 0 0 0 184 84 Z"/></clipPath></defs>' +
+    '<g transform="rotate(-9 58 72)"><rect x="18" y="24" width="74" height="92" rx="7" class="i-paper"/><path d="M31 46h46M31 60h46M31 74h32" class="i-line"/><path d="M31 92l6 6 11-13" class="i-check"/></g>' +
+    '<path d="M92 84 A46 42 0 0 0 184 84 Z" class="i-bowl"/>' +
+    '<g clip-path="url(#bowl-clip)"><path d="M104 88v40M119 88v40M134 88v40M149 88v40M164 88v40M179 88v40" class="i-stripe"/></g>' +
+    '<path d="M92 84 A46 42 0 0 0 184 84 Z" fill="none" stroke="var(--ink)" stroke-width="1.6"/>' +
+    '<ellipse cx="138" cy="84" rx="46" ry="11" class="i-soup"/>' +
+    '<circle cx="124" cy="82" r="6" class="i-egg"/><circle cx="138" cy="80" r="7" class="i-egg"/><circle cx="152" cy="84" r="5.5" class="i-egg"/>' +
+    '<circle cx="131" cy="86" r="2" class="i-pea"/><circle cx="145" cy="79" r="2" class="i-pea"/><circle cx="141" cy="88" r="2" class="i-pea"/><circle cx="118" cy="86" r="1.8" class="i-pea"/>' +
+    '<path d="M203 104h30l-4 28h-22z" class="i-pot"/>' +
+    '<path d="M218 104c-2-14-12-20-20-20 1 10 8 18 20 20z" class="i-leaf"/><path d="M218 104c1-16 10-24 19-25-1 12-8 21-19 25z" class="i-leaf"/><path d="M218 104c0-12 0-22 2-30 4 8 3 20-2 30z" class="i-leaf"/>' +
+    '<text x="190" y="36" class="i-hand" transform="rotate(-8 205 36)">Good</text><text x="196" y="60" class="i-hand" transform="rotate(-8 210 60)">Life :)</text>' +
+    '</svg>';
+}
+
+function renderHome(){
+  var t = today(), ym = monthOf(t), ms = monthStats(ym), h = new Date().getHours();
+  var greet = h < 5 ? '夜深了' : h < 11 ? '早上好' : h < 14 ? '中午好' : h < 18 ? '下午好' : '晚上好';
+  var pct = ms.budget ? Math.min(100, ms.out / ms.budget * 100) : 0;
+  var foods = fridgeSorted();
+  var urgent = foods.filter(function(f){ return daysLeft(f) <= 3; });
+  var expired = urgent.filter(function(f){ return daysLeft(f) < 0; });
+  var soon = urgent.filter(function(f){ return daysLeft(f) >= 0; });
+  var note = '';
+  if (expired.length) note += expired.map(function(f){ return f.name; }).join('、') + ' 已经过期，看看还能不能吃。';
+  if (soon.length) note += soon.map(function(f){ return f.name; }).join('、') + '：3 天内到期，先安排它们。';
+  if (!note && foods.length) note = '暂时没有快过期的食材，慢慢吃。';
+
+  var html = '<section class="hero"><div class="hero-text"><p class="hero-date">' + md(t) + ' · ' + wk(t) + ' · ' + greet + '</p>' +
+    '<h1>把小日子，过成喜欢的样子。</h1><p class="hero-sub">从琐碎下手，饭要好吃，日子慢慢过。</p><span class="marker">不着急，今天也在认真生活</span></div>' + heroArt() + '</section>';
+
+  html += '<div class="cols even">';
+  // budget
+  var dc = ms.cur;
+  html += '<article class="card"><header class="card-h"><span class="bubble">' + ic('wallet') + '</span><h2>本月生活预算</h2><span class="badge">' + (+ym.slice(5)) + ' 月账本</span></header>' +
+    (ms.left >= 0 ? '<div class="money">' + fmtC(ms.left, dc) + '</div><div class="small mute" style="margin-bottom:8px">这个月还能花</div>'
+                  : '<div class="money bad">超支 ' + fmtC(-ms.left, dc) + '</div><div class="small mute" style="margin-bottom:8px">接下来的日子省着点</div>') +
+    '<div class="bar' + (ms.left < 0 ? ' bad' : '') + '"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
+    '<div class="between small mute" style="margin-top:6px"><span>已支出 ' + fmtC(ms.out, dc) + '</span><button class="rate-chip" style="margin:0" data-a="budget">总预算 ' + fmtC(ms.budget, dc) + ic('edit') + '</button></div>' +
+    (ms.raw.out.KRW && ms.raw.out.CNY ? '<p class="hint" style="margin-top:6px">其中 ' + fmtC(ms.raw.out.KRW, 'KRW') + ' + ' + fmtC(ms.raw.out.CNY, 'CNY') + '，按 ' + rateText() + ' 折算</p>' : '') +
+    '<div class="trio"><div><span>本月收入</span><b>' + fmtC(ms.income, dc) + '</b></div><div><span>储蓄目标</span><b>' + fmtC(ms.saveGoal, dc) + '</b></div><div><span>已存入 · 手动记录</span><b>' + fmtC(ms.saved, dc) + '</b></div></div>' +
+    '<div class="actions">' + photoBtn('btn sm primary') + '<button class="btn sm soft" data-a="go" data-tab="ledger">' + ic('plus') + '记一笔</button></div></article>';
+  // fridge
+  html += '<article class="card"><header class="card-h"><span class="bubble g">' + ic('fridge') + '</span><h2>冰箱里还有好东西</h2><span class="badge">' + foods.length + ' 种食材</span></header>';
+  if (foods.length){
+    html += '<div class="mini-foods">' + foods.slice(0,6).map(function(f){
+      var n = daysLeft(f), cls = n < 0 || n === 0 ? ' bad' : n <= 3 ? ' warn' : '';
+      return '<button class="mini-food' + cls + '" data-a="food-edit" data-id="' + f.id + '"><span class="emo">' + esc(f.emoji) + '</span><span style="min-width:0"><b>' + esc(f.name) + '</b><span>' + esc(fmtQty(f.qty, f.unit)) + ' · ' + (n < 0 ? '过期' : n === 0 ? '今天到期' : n + ' 天') + '</span></span></button>';
+    }).join('') + '</div><p class="note">* ' + esc(note) + '</p>';
+  } else html += '<div class="empty"><b>冰箱还是空的</b>把家里有的食材记进来，到期前会提醒你。<button class="btn sm primary" data-a="food-add">' + ic('plus') + '添加食材</button></div>';
+  html += '</article>';
+  // meals today
+  var m = S.meals[t] || {};
+  html += '<article class="card"><header class="card-h"><span class="bubble">' + ic('bowl') + '</span><h2>今天吃什么</h2><button class="btn sm" data-a="go" data-tab="meals">看一周菜单</button></header><div class="list">' +
+    SLOTS.map(function(sl){
+      var e = m[sl[0]], r = e && e.r && RMAP[e.r];
+      return '<button class="li" data-a="home-meal" data-k="' + sl[0] + '"><span class="emo">' + (r ? r.e : e && e.t ? '🍱' : '🍽️') + '</span><span class="tx"><small>' + sl[1] + '</small><b>' + (r ? esc(r.n) : e && e.t ? esc(e.t) : '<span class="mute">还没安排</span>') + '</b></span>' + (r ? '<span class="tag mute">' + r.t + ' 分钟</span>' : '') + '</button>';
+    }).join('') + '</div></article>';
+  // todos today
+  var tl = todayTodos(), done = tl.filter(function(x){ return x.done; }).length;
+  html += '<article class="card"><header class="card-h"><span class="bubble g">' + ic('todo') + '</span><h2>今日待办</h2><span class="badge">' + done + '/' + tl.length + '</span></header>';
+  if (tl.length){
+    html += '<div class="bar thin" style="margin-bottom:12px"><i style="width:' + (tl.length ? done/tl.length*100 : 0).toFixed(0) + '%"></i></div><div class="list">' + tl.slice(0,5).map(function(x){ return todoRow(x, true); }).join('') + '</div>' +
+      (tl.length > 5 ? '<p class="hint" style="margin-top:8px">还有 ' + (tl.length-5) + ' 件，去「日常待办」看看。</p>' : '');
+  } else html += '<div class="empty"><b>今天没有要做的事</b>想到什么就记下来，做完打个勾。<button class="btn sm primary" data-a="go" data-tab="todo">' + ic('plus') + '新增待办</button></div>';
+  html += '</article>';
+  // shop
+  var pend = S.shop.filter(function(x){ return !x.done; });
+  html += '<article class="card"><header class="card-h"><span class="bubble">' + ic('cart') + '</span><h2>采购清单</h2><span class="badge">' + pend.length + ' 样待买</span></header>' +
+    (pend.length ? '<div class="chips">' + pend.slice(0,10).map(function(x){ return '<span class="chip">' + esc(x.n) + (shopQty(x) ? ' <span class="mute">' + esc(shopQty(x)) + '</span>' : '') + '</span>'; }).join('') + (pend.length > 10 ? '<span class="chip">还有 ' + (pend.length-10) + ' 样</span>' : '') + '</div>'
+                 : '<p class="lead" style="margin:0">清单是空的。安排好一周三餐后，缺的食材会自动列出来。</p>') +
+    '<div class="actions"><button class="btn sm" data-a="go" data-tab="shop">去采购清单</button></div></article>';
+  // monthly wins
+  var st = stat(ym);
+  var doneMonth = S.todos.filter(function(x){ return x.done && monthOf(x.doneAt) === ym; }).length;
+  html += '<article class="card"><header class="card-h"><span class="bubble g">' + ic('leaf') + '</span><h2>这个月的小成绩</h2></header><div class="stats4">' +
+    '<div><b>' + ms.recs.length + '</b><span>记账笔数</span></div><div><b>' + st.used + '</b><span>吃完的食材</span></div>' +
+    '<div><b>' + st.wasted + '</b><span>扔掉的食材</span></div><div><b>' + doneMonth + '</b><span>做完的待办</span></div></div>' +
+    '<p class="hint" style="margin-top:10px">' + (st.wasted === 0 ? '这个月还没扔过菜，保持住。' : '少扔一件冰箱菜，就是省下来的钱。') + '</p></article>';
+  html += '</div>';
+  return html;
+}
+
+/* ledger */
+function renderLedger(){
+  var ym = view.month, sc = S.settings.showCur, split = sc === 'split', ms = monthStats(ym), dc = ms.cur, p = ym.split('-');
+  var html = '<div class="page-title"><div><h2><span class="hl">钱去哪了？</span>现在一眼看清</h2><p>韩元和人民币分开记，想看总数就一键全换成一种。</p></div>' +
+    '<div class="row"><div class="seg btns" role="group" aria-label="金额怎么显示">' + [['split','分开看'],['CNY','全换成 ¥'],['KRW','全换成 ₩']].map(function(o){
+      return '<button data-a="show-cur" data-c="' + o[0] + '" aria-pressed="' + (sc === o[0]) + '"' + (sc === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div>' +
+    '<div class="month-nav"><button class="icon-btn sm" data-a="month" data-d="-1" aria-label="上个月">' + ic('left') + '</button><b>' + p[0] + '年' + (+p[1]) + '月</b><button class="icon-btn sm" data-a="month" data-d="1" aria-label="下个月">' + ic('right') + '</button></div></div></div>';
+  html += '<div class="phone-only quick-row">' + photoBtn('btn primary big') + '<button class="btn soft big" data-a="say-focus">' + ic('spark') + '说一句</button></div>';
+  html += '<div class="cols"><div class="stack">';
+  html += '<div class="tiles2"><div class="tile"><span>本月收入</span>' + (split ? splitHtml(ms.raw['in']) : '<b>' + fmtC(ms.income, dc) + '</b>') + '</div>' +
+    '<div class="tile"><span>本月支出</span>' + (split ? splitHtml(ms.raw.out) : '<b>' + fmtC(ms.out, dc) + '</b>') + '</div></div>';
+  html += '<div class="tile mint' + (ms.left < 0 ? ' bad' : '') + '"><span>' + (ms.left < 0 ? '已经超出预算' : '可支配预算余额') + (split && ms.mixed ? '（换算成' + CURS[dc].name + '）' : '') + '</span><b>' + fmtC(Math.abs(ms.left), dc) + '</b>' +
+    '<div class="chip-row"><button class="rate-chip" data-a="budget">改每月预算' + ic('edit') + '</button><button class="rate-chip" data-a="rate">汇率 ' + rateText() + (S.settings.rateAt ? '' : ' · 默认值，点这里改') + ic('edit') + '</button></div></div>';
+  var cats = S.settings.cats.slice(), extra = Object.keys(ms.byCat).filter(function(n){ return !cats.some(function(c){ return c.n === n; }); });
+  extra.forEach(function(n){ cats.push({n:n, b:0}); });
+  html += '<article class="card"><header class="card-h"><h2>每一份预算，都有去处</h2><button class="btn sm" data-a="budget">调整预算</button></header><div class="cat-bars">' +
+    cats.map(function(c, i){
+      var b = conv(c.b, S.settings.budgetCur, dc), sp = ms.byCat[c.n] || 0, over = b ? sp > b + 0.004 : sp > 0, w = b ? Math.min(100, sp / b * 100) : (sp ? 100 : 0);
+      return '<div class="cat-bar"><div class="between"><b class="row" style="gap:8px"><span class="dot" style="background:' + CAT_COLORS[i % CAT_COLORS.length] + '"></span>' + esc(c.n) + '</b><span>' + (over && b ? '<span class="over">超出 ' + fmtC(sp - b, dc) + '</span> · ' : '') + fmtC(sp, dc) + ' / ' + fmtC(b, dc) + '</span></div><div class="bar' + (over ? ' bad' : '') + '"><i style="width:' + w.toFixed(1) + '%"></i></div></div>';
+    }).join('') + '</div>' + (ms.mixed ? '<p class="hint" style="margin-top:12px">两种钱都按 ' + rateText() + ' 换算成' + CURS[dc].name + '再比预算。</p>' : '') + '</article>';
+  var spct = ms.saveGoal ? Math.min(100, ms.saved / ms.saveGoal * 100) : 0;
+  html += '<article class="card"><header class="card-h"><span class="bubble g">' + ic('leaf') + '</span><h2>储蓄目标</h2><span class="badge">' + spct.toFixed(0) + '%</span></header>' +
+    '<div class="between" style="margin-bottom:8px"><span class="money" style="font-size:24px">' + fmtC(ms.saved, dc) + '</span><span class="mute small">目标 ' + fmtC(ms.saveGoal, dc) + '</span></div><div class="bar"><i style="width:' + spct.toFixed(1) + '%"></i></div>' +
+    '<p class="hint" style="margin-top:8px">存钱是手动记录的：转进存款账户后，选「存钱」记一笔。收入减支出减存款，这个月还剩 ' + fmtC(ms.income - ms.out - ms.saved, dc) + '。</p></article>';
+  html += '</div><div class="stack">';
+  // 自动识别
+  html += '<article class="card"><header class="card-h"><span class="bubble">' + ic('camera') + '</span><h2>拍一下，自动记账</h2></header>' +
+    '<p class="lead">付款截图、超市小票、刷卡单都行，可以一次选好几张。认出来的金额、韩元还是人民币、类别，你核对一下再记。</p>' +
+    photoBtn('btn primary wide big') +
+    '<button class="link-btn" data-a="shortcut">' + ic('spark') + '设置：敲两下手机背面，自动截图记账</button>' +
+    '<form class="say" data-f="say" autocomplete="off"><label class="field" for="say-in">现金付的，或者懒得拍照？说一句就行</label>' +
+    '<textarea id="say-in" name="say" rows="2" placeholder="现金 1.2万韩元 买菜&#10;地铁 1400；淘宝 58元 衣架"></textarea>' +
+    '<button class="btn soft" type="submit">' + ic('spark') + '识别这句话</button></form></article>';
+  // 手动
+  var type = view.lgType, cat = view.lgCat || (S.settings.cats[1] || S.settings.cats[0] || {n:'其他'}).n, cur = view.lgCur || S.settings.budgetCur;
+  var defDate = ym === monthOf(today()) ? today() : ym + '-01';
+  html += '<article class="card"><header class="card-h"><span class="bubble">' + ic('plus') + '</span><h2>手动记一笔</h2></header><form class="form" data-f="ledger" autocomplete="off">' +
+    '<div class="seg" role="radiogroup" aria-label="类型">' + [['out','支出'],['in','收入'],['save','存钱']].map(function(o){ return '<label><input type="radio" name="type" value="' + o[0] + '"' + (type === o[0] ? ' checked' : '') + '>' + o[1] + '</label>'; }).join('') + '</div>' +
+    '<div class="amt-row"><label class="field">金额<input type="text" inputmode="decimal" id="lg-amount" name="amount" class="amount-in" placeholder="比如 12000 或 1.2万" required></label>' +
+    '<div class="seg cur2" role="radiogroup" aria-label="币种">' + ['KRW','CNY'].map(function(c){ return '<label><input type="radio" name="cur" value="' + c + '"' + (cur === c ? ' checked' : '') + '>' + CURS[c].sym + ' ' + CURS[c].name + '</label>'; }).join('') + '</div></div>' +
+    '<div class="field" id="lg-cats"' + (type === 'out' ? '' : ' hidden') + '><span>花在哪</span><div class="chips">' + S.settings.cats.map(function(c){ return '<label class="chip"><input type="radio" name="cat" value="' + esc(c.n) + '"' + (c.n === cat ? ' checked' : '') + '>' + esc(c.n) + '</label>'; }).join('') + '</div></div>' +
+    '<div class="field"><span>怎么付的</span><div class="chips">' + PAYS.map(function(o){ return '<label class="chip"><input type="radio" name="pay" value="' + o[0] + '"' + (o[0] === '' ? ' checked' : '') + '>' + o[1] + '</label>'; }).join('') + '</div></div>' +
+    '<div class="grid2"><label class="field">备注<input type="text" id="lg-note" name="note" placeholder="' + (type === 'in' ? '比如：工资' : type === 'save' ? '比如：转入存款' : '比如：超市买菜') + '"></label><label class="field">日期<input type="date" id="lg-date" name="date" value="' + defDate + '" required></label></div>' +
+    '<button class="btn primary wide" type="submit">' + ic('check') + '记下来</button></form></article>';
+  // 明细
+  var recs = ms.recs.slice().sort(function(a,b){ return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+  html += '<article class="card"><header class="card-h"><h2>这个月的明细</h2><span class="badge">' + recs.length + ' 笔</span></header>';
+  if (recs.length){
+    var groups = {}, order = [];
+    recs.forEach(function(r){ if (!groups[r.date]){ groups[r.date] = []; order.push(r.date); } groups[r.date].push(r); });
+    html += order.map(function(d){
+      var outs = groups[d].filter(function(r){ return r.type === 'out'; }), daySum;
+      if (split){ var o = {KRW:0, CNY:0}; outs.forEach(function(r){ o[r.cur] += r.amount; }); daySum = splitText(o); }
+      else daySum = outs.length ? fmtC(outs.reduce(function(a,r){ return a + conv(r.amount, r.cur, dc); }, 0), dc) : '';
+      return '<div class="day-h"><span>' + md(d) + ' ' + wkShort(d) + '</span><span>' + (daySum ? '支出 ' + daySum : '') + '</span></div>' + groups[d].map(function(r){
+        var ci = S.settings.cats.findIndex(function(c){ return c.n === r.cat; });
+        var color = r.type === 'in' ? 'var(--ok)' : r.type === 'save' ? 'var(--c4)' : CAT_COLORS[(ci < 0 ? S.settings.cats.length : ci) % CAT_COLORS.length];
+        var lab = r.type === 'in' ? '收入' : r.type === 'save' ? '存钱' : r.cat;
+        var approx = !split && r.cur !== dc ? '<small>≈ ' + fmtC(conv(r.amount, r.cur, dc), dc) + '</small>' : '';
+        return '<div class="rec"><span class="dot" style="background:' + color + '"></span><div class="tx"><b>' + esc(r.note || lab) + '</b><small>' + esc(lab) + (r.pay ? ' · ' + PAY_NAME[r.pay] : '') + '</small></div><span class="amt ' + r.type + '">' + (r.type === 'in' ? '+' : r.type === 'save' ? '存 ' : '-') + fmtC(r.amount, r.cur) + approx + '</span><button class="icon-btn sm" data-a="lg-del" data-id="' + r.id + '" aria-label="删除这笔">' + ic('trash') + '</button></div>';
+      }).join('');
+    }).join('');
+  } else html += '<div class="empty"><b>这个月还没有记账</b>拍一张付款截图，或者说一句「现金 12000韩元 买菜」。</div>';
+  html += '</article></div></div>';
+  return html;
+}
+
+/* fridge */
+function renderFridge(){
+  var t = today(), f = view.fridgeFilter, all = fridgeSorted();
+  var list = all.filter(function(x){ return f === 'all' ? true : f === 'soon' ? daysLeft(x) <= 3 : x.place === f; });
+  var ym = monthOf(t), st = stat(ym);
+  var html = '<div class="page-title"><div><h2><span class="hl">先吃库存，</span>别让菜烂在冰箱里</h2><p>按到期日排好了，越靠前越要先吃。本月吃完 ' + st.used + ' 件，扔掉 ' + st.wasted + ' 件。</p></div><button class="btn primary" data-a="food-add">' + ic('plus') + '添加食材</button></div>';
+  html += '<article class="card"><header class="card-h"><span class="bubble g">' + ic('fridge') + '</span><h2>冰箱里的新鲜食材</h2><span class="badge">' + all.length + ' 种</span></header>' +
+    '<div class="chips" style="margin-bottom:14px">' + [['all','全部'],['soon','快过期'],['冷藏','冷藏'],['冷冻','冷冻'],['常温','常温']].map(function(o){
+      var c = o[0] === 'all' ? all.length : o[0] === 'soon' ? all.filter(function(x){ return daysLeft(x) <= 3; }).length : all.filter(function(x){ return x.place === o[0]; }).length;
+      return '<button class="chip' + (f === o[0] ? ' on' : '') + '" data-a="fridge-filter" data-f="' + o[0] + '">' + o[1] + ' ' + c + '</button>'; }).join('') + '</div>';
+  if (list.length){
+    html += '<div class="food-grid">' + list.map(function(x){
+      return '<div class="food" role="button" tabindex="0" data-a="food-edit" data-id="' + x.id + '" aria-label="编辑' + esc(x.name) + '">' + freshTag(x) + '<span class="emo">' + esc(x.emoji) + '</span><span class="nm">' + esc(x.name) + '<small>' + esc(fmtQty(x.qty, x.unit)) + '</small></span><span class="exp">' + md(x.expire) + '到期 · ' + esc(x.place) + '</span>' +
+        '<button class="minus" data-a="food-minus" data-id="' + x.id + '" aria-label="用掉一些' + esc(x.name) + '" title="用掉一些">' + ic('minus') + '</button></div>';
+    }).join('') + '</div><p class="hint" style="margin-top:10px">点卡片可以改数量和到期日；右下角的「−」是用掉一份。</p>';
+  } else html += '<div class="empty"><b>' + (all.length ? '这一类里没有食材' : '冰箱还是空的') + '</b>' + (all.length ? '' : '买菜回来记一下，到期前会提醒你先吃。') + '<button class="btn sm primary" data-a="food-add">' + ic('plus') + '添加食材</button></div>';
+  html += '</article>';
+  // suggestions
+  var sug = RECIPES.map(function(r){ return {r:r, c:coverage(r)}; }).filter(function(x){ return x.c.have > 0; })
+    .sort(function(a,b){ return (a.c.miss.length - b.c.miss.length) || (b.c.urg - a.c.urg) || (b.c.have - a.c.have); }).slice(0,8);
+  html += '<article class="card"><header class="card-h"><span class="bubble">' + ic('bowl') + '</span><h2>用冰箱里的东西，能做这些</h2></header>';
+  if (sug.length) html += '<div class="list">' + sug.map(function(x){
+    return '<button class="li" data-a="recipe" data-r="' + x.r.id + '"><span class="emo">' + x.r.e + '</span><span class="tx"><b>' + esc(x.r.n) + '</b><small>约 ' + x.r.t + ' 分钟 · ' + x.r.tags.join(' · ') + '</small></span>' +
+      (x.c.miss.length ? '<span class="tag warn">还差 ' + esc(x.c.miss.slice(0,2).join('、')) + (x.c.miss.length > 2 ? ' 等' : '') + '</span>' : '<span class="tag ok">食材齐了</span>') + '</button>';
+  }).join('') + '</div>';
+  else html += '<div class="empty">添加一些食材后，这里会推荐能做的家常菜。</div>';
+  html += '</article>';
+  return html;
+}
+
+/* meals */
+function recipeBody(r){
+  return '<div class="rp-top"><span class="plate lg">' + r.e + '</span><div class="rp-meta"><span class="pill">' + ic('clock') + '约 ' + r.t + ' 分钟 · 1 人份</span><div class="chips">' + r.tags.map(function(t){ return '<span class="tag mute">' + t + '</span>'; }).join('') + '</div></div></div>' +
+    '<h4>准备食材</h4><table class="ing"><tbody>' + r.ing.map(function(g){
+      var has = haveSame(g[0], g[2]) >= g[1] - 1e-9, some = fridgeHas(g[0]) > 0;
+      return '<tr><td>' + (FOODS[g[0]] ? FOODS[g[0]][0] + ' ' : '') + g[0] + '</td><td>' + (has ? '<span class="tag ok">冰箱有</span>' : some ? '<span class="tag warn">不太够</span>' : SKIP_BUY[g[0]] ? '<span class="tag mute">现煮</span>' : '') + '</td><td class="num">' + fmtQty(g[1], g[2]) + '</td></tr>';
+    }).join('') + '</tbody></table><p class="season"><b>调料</b>' + esc(r.s) + '</p>' +
+    '<h4>做法</h4><ol class="steps">' + r.st.map(function(s){ return '<li><span>' + esc(s) + '</span></li>'; }).join('') + '</ol>' +
+    '<div class="rp-actions"><button class="btn primary" data-a="recipe-shop" data-r="' + r.id + '">' + ic('plus') + '加入采购清单</button><button class="btn" data-a="cook" data-r="' + r.id + '">' + ic('check') + '做好了，从冰箱扣掉食材</button></div>';
+}
+function renderMeals(){
+  var t = today(), start = view.mealStart, days = [];
+  for (var i = 0; i < 7; i++) days.push(addDays(start, i));
+  if (days.indexOf(view.mealDay) < 0) view.mealDay = days[0];
+  var day = view.mealDay, m = S.meals[day] || {}, k = view.mealSlot, cur = m[k];
+  var html = '<div class="page-title"><div><h2><span class="hl">每天最难的问题：</span>今晚吃什么？</h2><p>先用快过期的食材，不追求精致摆盘，吃得舒服、不浪费就很好。</p></div><button class="btn primary" data-a="gen">' + ic('spark') + '一键生成本周</button></div>';
+  html += '<div class="meals-grid"><div class="stack">';
+  html += '<article class="card"><header class="card-h"><h2>不纠结，' + (day === t ? '今天' : md(day)) + '吃什么。</h2></header>' +
+    '<div class="days"><button class="icon-btn sm" data-a="week" data-d="-7" aria-label="前一周">' + ic('left') + '</button><div class="scroller">' + days.map(function(d){
+      return '<button class="day' + (d === day ? ' on' : '') + '" data-a="meal-day" data-day="' + d + '">' + md(d) + '<small>' + (d === t ? '今天' : wkShort(d)) + '</small></button>';
+    }).join('') + '</div><button class="icon-btn sm" data-a="week" data-d="7" aria-label="后一周">' + ic('right') + '</button></div>' +
+    (start !== t ? '<p style="margin:-6px 0 12px"><button class="btn sm" data-a="week" data-d="0">回到今天</button></p>' : '') +
+    '<div class="meal-row">' + SLOTS.map(function(sl){
+      var e = m[sl[0]], r = e && e.r && RMAP[e.r];
+      return '<button class="meal' + (sl[0] === k ? ' on' : '') + '" data-a="meal-slot" data-k="' + sl[0] + '"><span class="lab">' + ic(sl[2], sl[2]) + sl[1] + '</span><span class="nm' + (r || (e && e.t) ? '' : ' none') + '">' + (r ? esc(r.n) : e && e.t ? esc(e.t) : '还没安排') + '</span>' +
+        (r ? '<span class="plate">' + r.e + '</span>' : e && e.t ? '<span class="plate">🍱</span>' : '<span class="plate dash">' + ic('plus') + '</span>') + '</button>';
+    }).join('') + '</div></article>';
+  // week table
+  html += '<article class="card"><header class="card-h"><h2>这 7 天的菜单</h2><span class="badge">' + md(days[0]) + ' – ' + md(days[6]) + '</span></header><div class="week-wrap"><table class="week"><thead><tr><th>日期</th><th>早餐</th><th>午餐</th><th>晚餐</th></tr></thead><tbody>' +
+    days.map(function(d){
+      var dm = S.meals[d] || {};
+      return '<tr' + (d === day ? ' class="on"' : '') + '><td data-a="meal-day" data-day="' + d + '">' + md(d) + '<small>' + (d === t ? '今天' : wkShort(d)) + '</small></td>' + SLOTS.map(function(sl){
+        var e = dm[sl[0]], r = e && e.r && RMAP[e.r];
+        return '<td class="cell" data-a="meal-cell" data-day="' + d + '" data-k="' + sl[0] + '">' + (r ? r.e + ' ' + esc(r.n) : e && e.t ? '🍱 ' + esc(e.t) : '<span class="mute">—</span>') + '</td>';
+      }).join('') + '</tr>';
+    }).join('') + '</tbody></table></div>';
+  var need = weekNeeds(t).filter(function(x){ return !S.shop.some(function(s){ return !s.done && s.n === x.n; }); });
+  html += need.length ? '<div class="between" style="margin-top:14px;flex-wrap:wrap"><span class="small">从今天起这周的菜还缺 <b>' + need.length + '</b> 样：' + esc(need.slice(0,5).map(function(x){ return x.n; }).join('、')) + (need.length > 5 ? ' 等' : '') + '</span><button class="btn sm soft" data-a="shop-week">' + ic('cart') + '全部加入采购清单</button></div>'
+                      : '<p class="hint" style="margin-top:12px">从今天起这周要用的食材，冰箱和采购清单里都有了。</p>';
+  html += '</article></div>';
+  // recipe panel
+  html += '<article class="card rp rp-card" id="rp"><div class="between" style="margin-bottom:4px"><span class="slot-lab">' + (day === t ? '今天' : md(day)) + ' · ' + SLOT_NAME[k] + '</span><div class="row" style="gap:4px">' +
+    (cur ? '<button class="btn sm" data-a="pick" data-day="' + day + '" data-k="' + k + '">' + ic('swap') + '换一道</button>' : '') + '</div></div>';
+  var r = cur && cur.r && RMAP[cur.r];
+  if (r) html += '<h3>' + esc(r.n) + '</h3>' + recipeBody(r);
+  else if (cur && cur.t) html += '<h3>' + esc(cur.t) + '</h3><div class="empty" style="margin-top:12px"><span class="plate">🍱</span>这顿不在家做，好好吃饭就行。</div>';
+  else html += '<h3>这顿还没安排</h3><div class="empty" style="margin-top:12px"><span class="plate dash">' + ic('plus') + '</span>挑一道菜，或者让它按冰箱里的食材帮你选。<div class="row" style="justify-content:center"><button class="btn sm primary" data-a="auto-one">' + ic('spark') + '帮我选一道</button><button class="btn sm" data-a="pick" data-day="' + day + '" data-k="' + k + '">自己挑</button></div></div>';
+  html += '</article></div>';
+  return html;
+}
+
+/* todos */
+function todoRow(x, compact){
+  var t = today();
+  if (!compact && view.editTodo === x.id){
+    return '<form class="todo-edit" data-f="todo-edit" data-id="' + x.id + '"><input type="text" name="t" value="' + esc(x.t) + '" required aria-label="待办内容"><input type="date" name="d" value="' + x.d + '" aria-label="日期"><select name="rep" aria-label="重复">' + repOpts(x.rep) + '</select><button class="btn sm primary" type="submit">保存</button><button class="btn sm" type="button" data-a="todo-cancel">取消</button></form>';
+  }
+  var meta = '';
+  if (!x.done && x.d < t) meta += '<span class="tag bad">逾期 · ' + md(x.d) + '</span>';
+  else if (x.d > t) meta += '<span class="tag mute">' + md(x.d) + '</span>';
+  else if (!compact && view.todoFilter !== 'today' && x.d === t) meta += '<span class="tag ok">今天</span>';
+  if (x.rep) meta += '<span class="tag mute">' + (x.rep === 'daily' ? '每天' : '每周') + '</span>';
+  return '<div class="todo' + (x.done ? ' done' : '') + '"><button class="check' + (x.done ? ' on' : '') + '" data-a="todo-toggle" data-id="' + x.id + '" aria-pressed="' + x.done + '" aria-label="' + (x.done ? '标记为没做完' : '标记为做完') + '：' + esc(x.t) + '">' + ic('check') + '</button>' +
+    '<div class="tx"><span>' + esc(x.t) + '</span>' + (meta ? '<span class="meta">' + meta + '</span>' : '') + '</div>' +
+    (compact ? '' : '<button class="icon-btn sm" data-a="todo-del" data-id="' + x.id + '" aria-label="删除">' + ic('trash') + '</button><button class="icon-btn sm" data-a="todo-edit" data-id="' + x.id + '" aria-label="编辑">' + ic('edit') + '</button>') + '</div>';
+}
+function repOpts(v){ return [['','不重复'],['daily','每天'],['weekly','每周']].map(function(o){ return '<option value="' + o[0] + '"' + (v === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join(''); }
+function renderTodo(){
+  var t = today(), f = view.todoFilter, list;
+  if (f === 'today') list = todayTodos();
+  else if (f === 'open') list = S.todos.filter(function(x){ return !x.done; }).sort(todoSort);
+  else list = S.todos.slice().sort(function(a,b){ return a.d < b.d ? -1 : a.d > b.d ? 1 : (a.done === b.done ? 0 : a.done ? 1 : -1); });
+  var tl = todayTodos(), done = tl.filter(function(x){ return x.done; }).length, pct = tl.length ? Math.round(done / tl.length * 100) : 0;
+  var cheer = !tl.length ? '今天很轻松' : pct === 100 ? '今天的事都做完了，歇会儿' : pct >= 60 ? '快做完了' : pct > 0 ? '继续加油！' : '从最小的一件开始';
+  var html = '<div class="page-title"><div><h2><span class="hl">懒得记的琐事，</span>也帮你列好了</h2><p>换床单、洗衣服、整理房间、采购日用品……做完直接打勾。</p></div></div>';
+  html += '<div class="todo-grid"><article class="card"><header class="card-h"><h2>做完一件，就轻松一点。</h2></header>' +
+    '<form class="todo-add" data-f="todo-add" autocomplete="off"><input type="text" id="td-text" name="t" placeholder="想到什么就记下来，比如：换床单" required aria-label="待办内容"><input type="date" name="d" value="' + t + '" aria-label="日期"><select name="rep" aria-label="重复">' + repOpts('') + '</select><button class="btn primary" type="submit">' + ic('plus') + '新增待办</button></form>' +
+    '<div class="chips" style="margin:10px 0 14px"><span class="small mute" style="align-self:center">常做的：</span>' + QUICK_TODOS.map(function(q){ return '<button class="chip" data-a="todo-quick" data-t="' + esc(q) + '">+ ' + esc(q) + '</button>'; }).join('') + '</div>' +
+    '<div class="chips" style="margin-bottom:12px">' + [['today','今天'],['open','全部未完成'],['all','全部日期']].map(function(o){ return '<button class="chip' + (f === o[0] ? ' on' : '') + '" data-a="todo-filter" data-f="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>';
+  if (list.length){
+    if (f === 'all'){
+      var groups = {}, order = [];
+      list.forEach(function(x){ if (!groups[x.d]){ groups[x.d] = []; order.push(x.d); } groups[x.d].push(x); });
+      html += order.map(function(d){ return '<div class="day-h"><span>' + md(d) + ' ' + wkShort(d) + (d === t ? ' · 今天' : '') + '</span></div><div class="list">' + groups[d].map(function(x){ return todoRow(x); }).join('') + '</div>'; }).join('');
+    } else html += '<div class="list">' + list.map(function(x){ return todoRow(x); }).join('') + '</div>';
+  } else html += '<div class="empty"><b>' + (f === 'today' ? '今天没有待办' : '没有待办') + '</b>在上面写一件，或者点一个常做的小事。</div>';
+  html += '</article><div class="stack"><article class="card"><header class="card-h"><h2>今日完成</h2></header><div class="big-frac">' + done + '<small>/' + tl.length + '</small></div><div class="bar" style="margin-top:12px"><i style="width:' + pct + '%"></i></div><span class="cheer">' + pct + '% · ' + cheer + '</span></article>' +
+    '<article class="card"><p class="hand">一点点完成，<br>生活也会变轻松。</p><p class="hint" style="margin-top:8px">设成「每天」或「每周」的事，打勾后会自动排到下一次。</p></article></div></div>';
+  return html;
+}
+
+/* shop */
+function renderShop(){
+  var t = today(), pend = S.shop.filter(function(x){ return !x.done; }), done = S.shop.filter(function(x){ return x.done; });
+  var need = weekNeeds(t).filter(function(x){ return !S.shop.some(function(s){ return !s.done && s.n === x.n; }); });
+  function row(x){
+    return '<div class="todo' + (x.done ? ' done' : '') + '"><button class="check' + (x.done ? ' on' : '') + '" data-a="shop-toggle" data-id="' + x.id + '" aria-pressed="' + x.done + '" aria-label="' + (x.done ? '标记为还没买' : '标记为买到了') + '：' + esc(x.n) + '">' + ic('check') + '</button><div class="tx"><span>' + esc(x.n) + '</span><span class="meta">' + (shopQty(x) ? '<span class="tag mute">' + esc(shopQty(x)) + '</span>' : '') + (x.from ? '<span class="tag ok">' + esc(x.from) + '</span>' : '') + '</span></div><button class="icon-btn sm" data-a="shop-del" data-id="' + x.id + '" aria-label="删除">' + ic('trash') + '</button></div>';
+  }
+  var html = '<div class="page-title"><div><h2><span class="hl">先清库存，</span>再去逛超市</h2><p>一周菜单缺的食材会列在这里。买回来打个勾，一键收进冰箱、记进账本。</p></div></div>';
+  html += '<div class="cols"><article class="card"><header class="card-h"><span class="bubble">' + ic('cart') + '</span><h2>出门前看一眼</h2><span class="badge">' + pend.length + ' 样待买</span></header>' +
+    '<form class="custom-row" data-f="shop-add" autocomplete="off" style="grid-template-columns:minmax(0,1fr) 110px auto;margin-bottom:14px"><input type="text" id="sh-name" name="n" list="food-names" placeholder="要买什么" required aria-label="要买什么"><input type="text" name="q" placeholder="数量" aria-label="数量"><button class="btn primary" type="submit">' + ic('plus') + '加上</button></form>' +
+    '<datalist id="food-names">' + Object.keys(FOODS).map(function(n){ return '<option value="' + n + '">'; }).join('') + '</datalist>';
+  html += pend.length ? '<div class="list">' + pend.map(row).join('') + '</div>' : '<div class="empty"><b>都买齐了</b>想到要买的随手加上。</div>';
+  if (done.length){
+    html += '<div class="day-h"><span>已经买到 ' + done.length + ' 样</span></div><div class="list">' + done.map(row).join('') + '</div>' +
+      '<div class="actions"><button class="btn primary" data-a="bought">' + ic('fridge') + '买好了，收进冰箱</button><button class="btn" data-a="shop-clear">清掉已买的</button></div>';
+  }
+  html += '<div class="actions"><button class="btn sm" data-a="shop-copy">' + ic('copy') + '复制清单</button></div></article>';
+  html += '<article class="card"><header class="card-h"><span class="bubble g">' + ic('bowl') + '</span><h2>本周菜单还缺</h2></header>';
+  if (need.length){
+    html += '<div class="list">' + need.map(function(x){ return '<div class="li"><span class="emo">' + (FOODS[x.n] ? FOODS[x.n][0] : '🛒') + '</span><span class="tx"><b>' + esc(x.n) + ' <span class="mute" style="font-weight:600">' + esc(fmtQty(x.a, x.u)) + '</span></b><small>做 ' + esc(x.from) + ' 要用</small></span></div>'; }).join('') + '</div>' +
+      '<div class="actions"><button class="btn soft" data-a="shop-week">' + ic('plus') + '全部加入清单</button></div>';
+  } else html += '<div class="empty"><b>这周的菜，食材都有了</b>' + (Object.keys(S.meals).length ? '' : '还没排菜单的话，') + '可以去「一周三餐」排一下。<button class="btn sm" data-a="go" data-tab="meals">去一周三餐</button></div>';
+  html += '</article></div>';
+  return html;
+}
+
+/* ---------------- sheets ---------------- */
+var lastFocus = null;
+function openSheet(html){
+  lastFocus = document.activeElement;
+  $('#sheet-box').innerHTML = html;
+  $('#sheet').hidden = false;
+  document.documentElement.style.overflow = 'hidden';
+  var first = $('#sheet-box [autofocus]') || $('#sheet-box input, #sheet-box button');
+  if (first) try { first.focus({preventScroll:true}); } catch(e){}
+}
+function closeSheet(){
+  if (Vision.ctrl){ Vision.ctrl.abort(); Vision.ctrl = null; }
+  if (Review.urls.length){ Review.urls.forEach(function(u){ URL.revokeObjectURL(u); }); Review.urls = []; }
+  $('#sheet').hidden = true; $('#sheet-box').innerHTML = '';
+  document.documentElement.style.overflow = '';
+  if (lastFocus && document.contains(lastFocus)) try { lastFocus.focus({preventScroll:true}); } catch(e){}
+}
+function sheetHead(title){ return '<div class="sheet-h"><h3>' + title + '</h3><button class="icon-btn" data-a="close" aria-label="关闭">' + ic('x') + '</button></div>'; }
+
+function sheetFood(id){
+  var f = id ? S.fridge.find(function(x){ return x.id === id; }) : null, t = today();
+  if (id && !f) return;
+  openSheet(sheetHead(f ? '编辑食材' : '添加食材') +
+    '<form class="form" data-f="food" data-id="' + (f ? f.id : '') + '" autocomplete="off">' +
+    '<div class="grid2" style="grid-template-columns:minmax(0,1fr) 80px"><label class="field">食材<input type="text" id="fd-name" name="name" list="food-list" required value="' + esc(f ? f.name : '') + '" placeholder="比如：番茄"' + (f ? '' : ' autofocus') + '></label><label class="field">图标<input type="text" id="fd-emoji" name="emoji" value="' + esc(f ? f.emoji : '🍽️') + '"></label></div>' +
+    '<div class="grid3"><label class="field">数量<input type="number" id="fd-qty" name="qty" step="any" min="0" inputmode="decimal" value="' + (f ? f.qty : 1) + '" required></label><label class="field">单位<input type="text" id="fd-unit" name="unit" value="' + esc(f ? f.unit : '个') + '"></label>' +
+    '<label class="field">放在<select id="fd-place" name="place">' + ['冷藏','冷冻','常温'].map(function(p){ return '<option' + ((f ? f.place : '冷藏') === p ? ' selected' : '') + '>' + p + '</option>'; }).join('') + '</select></label></div>' +
+    '<label class="field">到期日<input type="date" id="fd-exp" name="expire" value="' + (f ? f.expire : addDays(t,7)) + '" required></label>' +
+    '<p class="hint" id="fd-hint">' + (f ? '加入于 ' + esc(f.added) : '输入常见食材名，会自动填好单位和大概能放几天。') + '</p>' +
+    '<datalist id="food-list">' + Object.keys(FOODS).map(function(n){ return '<option value="' + n + '">'; }).join('') + '</datalist>' +
+    '<div class="sheet-actions">' + (f ? '<button type="button" class="btn" data-a="food-done" data-id="' + f.id + '">' + ic('check') + '吃完了</button><button type="button" class="btn danger" data-a="food-waste" data-id="' + f.id + '">坏了，扔掉</button>' : '') +
+    '<button class="btn primary" type="submit">' + (f ? '保存' : '放进冰箱') + '</button></div></form>');
+}
+function sheetBudget(){
+  var bc = S.settings.budgetCur;
+  var rows = S.settings.cats.map(function(c){ return budgetRow(c.n, c.b); }).join('');
+  openSheet(sheetHead('调整每月预算') + '<form class="form" data-f="budget" data-cur="' + bc + '" autocomplete="off"><p class="lead" style="margin:0">每一类每个月打算花多少。改名不会影响已经记过的账。</p>' +
+    '<div class="field"><span>预算用哪种钱</span><div class="seg cur2" style="max-width:280px">' + ['KRW','CNY'].map(function(c){ return '<label><input type="radio" name="bcur" value="' + c + '"' + (bc === c ? ' checked' : '') + '>' + CURS[c].sym + ' ' + CURS[c].name + '</label>'; }).join('') + '</div><span class="hint">切换时，下面的数字会按 ' + rateText() + ' 换算过去。</span></div>' +
+    '<label class="field">每月总预算<input type="text" inputmode="decimal" id="bd-total" value="' + S.settings.cats.reduce(function(a,c){ return a + c.b; }, 0) + '"><span class="hint">改总数会按比例分到下面各类，也可以单独改某一类。每个月都用这套预算。</span></label>' +
+    '<div id="bd-rows" style="display:grid;gap:8px">' + rows + '</div><div><button type="button" class="btn sm" data-a="bd-add">' + ic('plus') + '加一类</button></div>' +
+    '<label class="field">每月储蓄目标<input type="number" name="saveGoal" min="0" step="any" inputmode="decimal" value="' + S.settings.saveGoal + '"></label>' +
+    '<p class="hint" id="bd-sum"></p><div class="sheet-actions"><button class="btn primary" type="submit">保存</button></div></form>');
+  budgetSum();
+}
+function budgetRow(n, b){ return '<div class="bd-row"><input type="text" name="cn" value="' + esc(n) + '" placeholder="类别" aria-label="类别名" required><input type="number" name="cb" value="' + b + '" min="0" step="any" inputmode="decimal" aria-label="每月预算"><button type="button" class="icon-btn" data-a="bd-del" aria-label="删掉这一类">' + ic('trash') + '</button></div>'; }
+function budgetSum(){
+  var el = $('#bd-sum'); if (!el) return;
+  var f = el.closest('form'), s = $$('#bd-rows input[name=cb]').reduce(function(a,i){ return a + num(i.value); }, 0), tot = $('#bd-total');
+  if (tot && document.activeElement !== tot) tot.value = r2(s);
+  el.textContent = '各类加起来 ' + fmtC(s, f ? f.dataset.cur : S.settings.budgetCur) + '。';
+}
+var budgetBase = null;
+function scaleBudget(total){
+  var ins = $$('#bd-rows input[name=cb]'), f = $('form[data-f=budget]'); if (!ins.length || !f) return;
+  if (!budgetBase || budgetBase.length !== ins.length) budgetBase = ins.map(function(i){ return num(i.value); });
+  var unit = f.dataset.cur === 'KRW' ? 1000 : 1, sum = budgetBase.reduce(function(a,b){ return a + b; }, 0);
+  var out = budgetBase.map(function(v){ return Math.round((sum > 0 ? v / sum : 1 / ins.length) * total / unit) * unit; });
+  out[out.length - 1] = Math.max(0, r2(out[out.length - 1] + total - out.reduce(function(a,b){ return a + b; }, 0)));
+  ins.forEach(function(i, k){ i.value = out[k]; });
+  budgetSum();
+}
+function roundCur(v, cur){ return cur === 'KRW' ? Math.round(v / 1000) * 1000 : Math.round(v); }
+
+function sheetRate(){
+  var r = S.settings.rate;
+  openSheet(sheetHead('汇率') + '<form class="form" data-f="rate" autocomplete="off"><div class="rate-row"><span>1 人民币 =</span><input type="text" inputmode="decimal" id="rate-in" name="rate" value="' + fmtRate(r) + '" aria-label="1 人民币等于多少韩元"><span>韩元</span></div>' +
+    '<p class="hint" id="rate-eg">' + rateEg(r) + '</p>' +
+    '<p class="hint" id="rate-hint">' + (S.settings.rateAt ? '上次更新：' + esc(S.settings.rateAt) : '现在是默认值，不一定准。打开银行 App 或者搜「人民币 韩元 汇率」，把数字填进来。') + '</p>' +
+    (canFetchRate() ? '<div><button type="button" class="btn sm" data-a="rate-fetch">' + ic('refresh') + '联网查今天的汇率</button></div>' : '') +
+    '<p class="hint">汇率只影响换算出来的总数。每一笔记的是多少韩元、多少人民币，原样保留。</p>' +
+    '<div class="sheet-actions"><button class="btn primary" type="submit">保存</button></div></form>');
+}
+function rateEg(r){ r = num(r); return r > 0 ? '₩10,000 ≈ ' + fmtC(10000 / r, 'CNY') + '　·　¥100 ≈ ' + fmtC(100 * r, 'KRW') : ''; }
+function canFetchRate(){ return !(window.claude && typeof window.claude.use === 'function') && /^https?:$/.test(location.protocol); }
+
+function sheetGenerate(){
+  var p = S.settings.prefs;
+  openSheet(sheetHead('一键生成本周三餐') + '<p class="lead">按冰箱里的食材和你的口味，排好从今天起 7 天的菜单。快过期的食材会先被用掉，同一道菜不会连着吃。</p>' +
+    '<form class="form" data-f="gen">' +
+    '<div class="field"><span>要安排哪几顿</span><div class="chips">' + SLOTS.map(function(sl){ return '<label class="chip"><input type="checkbox" name="slots" value="' + sl[0] + '"' + (p.slots.indexOf(sl[0]) >= 0 ? ' checked' : '') + '>' + sl[1] + '</label>'; }).join('') + '</div></div>' +
+    '<div class="field"><span>工作日做一顿饭最多花</span><div class="chips">' + [[10,'10 分钟'],[20,'20 分钟'],[30,'30 分钟'],[999,'不限']].map(function(o){ return '<label class="chip"><input type="radio" name="maxTime" value="' + o[0] + '"' + (+p.maxTime === o[0] ? ' checked' : '') + '>' + o[1] + '</label>'; }).join('') + '</div><span class="hint">周末会放宽，可能排一锅慢炖的汤。</span></div>' +
+    '<div class="field"><span>口味偏好，可以多选</span><div class="chips">' + TAGS.map(function(tg){ return '<label class="chip"><input type="checkbox" name="tags" value="' + tg + '"' + (p.tags.indexOf(tg) >= 0 ? ' checked' : '') + '>' + tg + '</label>'; }).join('') + '</div></div>' +
+    '<label class="check-row"><input type="checkbox" name="keep"> 保留已经排好的菜，只填空着的</label>' +
+    '<label class="check-row"><input type="checkbox" name="shop" checked> 缺的食材加入采购清单</label>' +
+    '<p class="hint">自己写的安排（比如「公司食堂」）不会被换掉。</p>' +
+    '<div class="sheet-actions"><button class="btn primary" type="submit">' + ic('spark') + '生成菜单</button></div></form>');
+}
+function sheetPicker(day, k){
+  view.pick = {day:day, k:k};
+  var cur = (S.meals[day] || {})[k];
+  var list = RECIPES.filter(function(r){ return r.m.indexOf(k) >= 0; }).map(function(r){ return {r:r, c:coverage(r)}; })
+    .sort(function(a,b){ return (b.c.have/b.c.total - a.c.have/a.c.total) || (b.c.urg - a.c.urg) || (a.r.t - b.r.t); });
+  openSheet(sheetHead('安排 ' + (day === today() ? '今天' : md(day)) + SLOT_NAME[k]) +
+    '<div class="pick-list">' + list.map(function(x){
+      var c = x.c;
+      return '<button class="li" data-a="pick-set" data-r="' + x.r.id + '"><span class="emo">' + x.r.e + '</span><span class="tx"><b>' + esc(x.r.n) + '</b><small>约 ' + x.r.t + ' 分钟 · ' + x.r.tags.join(' · ') + '</small></span>' +
+        (c.have === c.total ? '<span class="tag ok">食材齐了</span>' : c.have ? '<span class="tag warn">冰箱有 ' + c.have + '/' + c.total + '</span>' : '<span class="tag mute">要去买</span>') + '</button>';
+    }).join('') + '</div>' +
+    '<form class="custom-row" data-f="pick-custom" autocomplete="off"><input type="text" name="t" placeholder="或者自己写：公司食堂、外卖、朋友家…" required aria-label="自己写这顿吃什么" value="' + esc(cur && cur.t ? cur.t : '') + '"><button class="btn" type="submit">就它了</button></form>' +
+    (cur ? '<div class="sheet-actions" style="margin-top:12px"><button class="btn danger sm" data-a="pick-clear">这顿先空着</button></div>' : ''));
+}
+function sheetRecipe(id){
+  var r = RMAP[id]; if (!r) return;
+  var t = today(), opts = '';
+  for (var i = 0; i < 7; i++){ var d = addDays(t, i); opts += '<option value="' + d + '">' + (i === 0 ? '今天' : i === 1 ? '明天' : md(d) + ' ' + wkShort(d)) + '</option>'; }
+  var slots = SLOTS.filter(function(sl){ return r.m.indexOf(sl[0]) >= 0; });
+  openSheet(sheetHead(esc(r.n)) + '<div class="rp">' + recipeBody(r) + '</div>' +
+    '<div class="plan-it"><span>安排到</span><select id="pl-day" aria-label="哪天">' + opts + '</select><select id="pl-slot" aria-label="哪顿">' + slots.map(function(sl){ return '<option value="' + sl[0] + '"' + (sl[0] === 'd' ? ' selected' : '') + '>' + sl[1] + '</option>'; }).join('') + '</select><button class="btn sm soft" data-a="plan-it" data-r="' + r.id + '">放进菜单</button></div>');
+}
+function sheetBought(){
+  var items = S.shop.filter(function(x){ return x.done; }), t = today();
+  if (!items.length){ toast('先在清单里勾上买到的东西'); return; }
+  openSheet(sheetHead('买好了，收进冰箱') + '<form class="form" data-f="bought" autocomplete="off"><p class="lead" style="margin:0">勾上要放进冰箱的。到期日按常见保存天数填好了，可以改。</p><div>' +
+    items.map(function(x){ var c = FOODS[x.n]; return '<div class="bought-row"><label class="check-row"><input type="checkbox" name="in-' + x.id + '"' + (c ? ' checked' : '') + '><span>' + (c ? c[0] + ' ' : '') + esc(x.n) + ' <span class="mute">' + esc(shopQty(x)) + '</span></span></label><input type="date" name="exp-' + x.id + '" value="' + addDays(t, c ? c[2] : 7) + '" aria-label="' + esc(x.n) + '的到期日"></div>'; }).join('') + '</div>' +
+    '<div class="grid2"><div class="field"><span>这次一共花了</span><div class="rv-amt"><input type="text" inputmode="decimal" name="amount" placeholder="不想记可以空着" aria-label="花了多少"><select name="cur" aria-label="币种">' + curOpts(view.lgCur || S.settings.budgetCur) + '</select></div></div><label class="field">记到账本哪一类<select name="cat">' + S.settings.cats.map(function(c){ return '<option' + (c.n === '买菜做饭' ? ' selected' : '') + '>' + esc(c.n) + '</option>'; }).join('') + '</select></label></div>' +
+    '<div class="sheet-actions"><button class="btn primary" type="submit">' + ic('check') + '完成</button></div></form>');
+}
+function sheetSearch(){
+  openSheet(sheetHead('搜一搜') + '<input type="search" id="q" placeholder="食材、菜名、待办、账目…" autocomplete="off" aria-label="搜索" autofocus><div class="q-res" id="q-res"><p class="hint">比如搜「番茄」，能看到冰箱里还有几个、能做哪些菜、哪天记过账。</p></div>');
+}
+function doSearch(q){
+  var box = $('#q-res'); if (!box) return;
+  q = q.trim().toLowerCase();
+  if (!q){ box.innerHTML = '<p class="hint">比如搜「番茄」，能看到冰箱里还有几个、能做哪些菜、哪天记过账。</p>'; return; }
+  function has(s){ return String(s || '').toLowerCase().indexOf(q) >= 0; }
+  var groups = [];
+  var fr = S.fridge.filter(function(f){ return has(f.name); });
+  if (fr.length) groups.push(['冰箱', fr.slice(0,6).map(function(f){ return '<button class="li" data-a="food-edit" data-id="' + f.id + '"><span class="emo">' + esc(f.emoji) + '</span><span class="tx"><b>' + esc(f.name) + ' ' + esc(fmtQty(f.qty, f.unit)) + '</b><small>到期 ' + f.expire + '</small></span>' + freshTag(f) + '</button>'; })]);
+  var rc = RECIPES.filter(function(r){ return has(r.n) || r.ing.some(function(g){ return has(g[0]); }) || r.tags.some(has); });
+  if (rc.length) groups.push(['菜谱', rc.slice(0,6).map(function(r){ return '<button class="li" data-a="recipe" data-r="' + r.id + '"><span class="emo">' + r.e + '</span><span class="tx"><b>' + esc(r.n) + '</b><small>' + r.ing.map(function(g){ return g[0]; }).join('、') + '</small></span></button>'; })]);
+  var td = S.todos.filter(function(x){ return has(x.t); });
+  if (td.length) groups.push(['待办', td.slice(0,6).map(function(x){ return '<button class="li" data-a="go" data-tab="todo"><span class="emo">' + (x.done ? '✅' : '⬜') + '</span><span class="tx"><b>' + esc(x.t) + '</b><small>' + md(x.d) + '</small></span></button>'; })]);
+  var lg = S.ledger.filter(function(r){ return has(r.note) || has(r.cat); }).sort(function(a,b){ return a.date < b.date ? 1 : -1; });
+  if (lg.length) groups.push(['账目', lg.slice(0,6).map(function(r){ return '<button class="li" data-a="go-month" data-m="' + monthOf(r.date) + '"><span class="emo">' + (r.type === 'in' ? '💰' : r.type === 'save' ? '🐷' : '🧾') + '</span><span class="tx"><b>' + esc(r.note || r.cat) + '</b><small>' + r.date + ' · ' + esc(r.cat) + '</small></span><span class="amt">' + fmtC(r.amount, r.cur) + '</span></button>'; })]);
+  var sh = S.shop.filter(function(x){ return has(x.n); });
+  if (sh.length) groups.push(['采购清单', sh.slice(0,6).map(function(x){ return '<button class="li" data-a="go" data-tab="shop"><span class="emo">🛒</span><span class="tx"><b>' + esc(x.n) + '</b><small>' + (x.done ? '已买到' : '待买') + '</small></span></button>'; })]);
+  box.innerHTML = groups.length ? groups.map(function(g){ return '<div><h4>' + g[0] + '</h4><div class="list">' + g[1].join('') + '</div></div>'; }).join('') : '<p class="hint">没找到「' + esc(q) + '」相关的内容。</p>';
+}
+function sheetBackup(){
+  openSheet(sheetHead('备份与恢复') +
+    '<p class="lead" id="bk-where">' + ($('#sync-note') ? esc($('#sync-note').textContent) : '') + '。</p>' +
+    '<div class="form"><div class="row"><button class="btn primary" data-a="bk-copy">' + ic('copy') + '复制备份</button><button class="btn" data-a="bk-download">' + ic('right') + '下载备份文件</button></div>' +
+    '<p class="hint">复制的备份是一段文字，可以存到备忘录或者发给自己。换手机时粘贴回来就能恢复。</p>' +
+    '<label class="field">恢复：把备份粘贴到这里，或者选一个备份文件<textarea id="bk-text" placeholder="{&quot;v&quot;:1,…}"></textarea></label>' +
+    '<div class="row"><input type="file" id="bk-file" accept=".json,application/json,text/plain" aria-label="选择备份文件" style="max-width:100%;font-size:13px"><button class="btn" data-a="bk-import">用这份备份恢复</button></div>' +
+    '<hr style="border:0;border-top:1px solid var(--line);width:100%;margin:6px 0">' +
+    '<div class="row"><button class="btn danger" data-a="bk-wipe">清空所有数据</button><span class="hint">会删掉账本、冰箱、菜单、待办和清单，删前建议先复制一份备份。</span></div></div>');
+}
+
+/* ---------------- 自动识别记账 ---------------- */
+var Vision = { sample:null, max:1, ctrl:null };
+var Review = { items:[], urls:[] };
+async function initVision(){
+  var c = window.claude;
+  if (!c || typeof c.use !== 'function') return;
+  try {
+    var s = await c.use('sample'); if (!s) return;
+    var lim = await s.limits().catch(function(){ return null; });
+    if (!lim || !lim.images) return;
+    Vision.sample = s; Vision.max = Math.max(1, lim.images.maxCount || 1);
+    var a = document.activeElement;
+    if (!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) && $('#sheet').hidden) render();
+  } catch(e){}
+}
+function photoBtn(cls){
+  var inner = ic('camera') + '截图 / 拍小票';
+  return Vision.sample ? '<label class="' + cls + '" for="photo-in" role="button" tabindex="0">' + inner + '</label>'
+                       : '<button class="' + cls + '" data-a="photo-help">' + inner + '</button>';
+}
+function curOpts(sel){ return ['KRW','CNY'].map(function(c){ return '<option value="' + c + '"' + (sel === c ? ' selected' : '') + '>' + CURS[c].sym + ' ' + CURS[c].name + '</option>'; }).join(''); }
+function catNames(){ return S.settings.cats.map(function(c){ return c.n; }); }
+var CAT_HINTS = [
+  ['房租水电', /房租|租金|水电|电费|水费|燃气|煤气|网费|话费|物业|管理费|월세|관리비|전기|가스|통신/i],
+  ['交通出行', /地铁|公交|打车|出租|交通|高铁|火车|机票|t-?money|티머니|지하철|버스|택시|ktx|加油/i],
+  ['日用品', /日用|纸巾|抽纸|洗衣|洗发|沐浴|牙膏|洗洁精|垃圾袋|衣架|收纳|다이소|올리브영|生活用品|化妆品/i],
+  ['买菜做饭', /买菜|超市|菜市场|市场|蔬菜|水果|猪肉|牛肉|鸡肉|鸡胸|鸡蛋|大米|食材|마트|이마트|홈플러스|롯데마트|시장|컬리/i],
+  ['外卖外食', /外卖|餐厅|饭店|吃饭|午饭|晚饭|早饭|早餐|午餐|晚餐|咖啡|拿铁|美式|奶茶|아메리카노|라떼|饮料|炸鸡|面包|便利店|饭团|배달|배민|요기요|카페|커피|식당|편의점|치킨|스타벅스|gs25|세븐일레븐|이마트24/i]
+];
+function guessCat(text){
+  var names = catNames();
+  for (var i = 0; i < CAT_HINTS.length; i++) if (CAT_HINTS[i][1].test(text) && names.indexOf(CAT_HINTS[i][0]) >= 0) return CAT_HINTS[i][0];
+  return names.indexOf('其他') >= 0 ? '其他' : names[names.length - 1];
+}
+// 找出一句话里的金额：12000、12,000원、1.2万韩元、3만원、5천원、¥58、58元
+function findAmounts(s){
+  var re = /([₩¥￥])?\s*(\d+(?:\.\d+)?\s*[万만]\s*\d+\s*[千천]|\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*([万만千천]|[kK](?![a-zA-Z]))?\s*(韩元|韩币|원|won|krw|人民币|块钱|块|元|rmb|cny)?/gi;
+  var out = [], m;
+  while ((m = re.exec(s))){
+    var body = m[2], a, mm = body.match(/^(\d+(?:\.\d+)?)\s*[万만]\s*(\d+)\s*[千천]$/);
+    if (mm) a = num(mm[1]) * 10000 + num(mm[2]) * 1000;
+    else { a = num(body.replace(/,/g, '')); var u = m[3]; if (u === '万' || u === '만') a *= 10000; else if (u) a *= 1000; }
+    var sym = m[1] || '', word = (m[4] || '').toLowerCase(), cur = '';
+    if (sym === '₩' || /韩元|韩币|원|won|krw/.test(word) || /[만천]/.test(m[0])) cur = 'KRW';
+    else if (sym === '¥' || sym === '￥' || /人民币|块|元|rmb|cny/.test(word)) cur = 'CNY';
+    out.push({a:a, cur:cur, raw:m[0], idx:m.index});
+  }
+  return out;
+}
+function amountOf(v, cur){ var f = findAmounts(String(v || ''))[0]; if (!f) return 0; return cur === 'KRW' ? Math.round(f.a) : r2(f.a); }
+function takeDate(s){
+  var t = today(), d = '', m = s.match(/(\d{1,2})\s*月\s*(\d{1,2})\s*[日号]?|(\d{1,2})\/(\d{1,2})(?!\d)/);
+  if (m){
+    var mo = +(m[1] || m[3]), da = +(m[2] || m[4]), y = +t.slice(0,4);
+    if (mo >= 1 && mo <= 12 && da >= 1 && da <= 31){ d = y + '-' + pad(mo) + '-' + pad(da); if (d > t) d = (y - 1) + '-' + pad(mo) + '-' + pad(da); s = s.replace(m[0], ' '); }
+  }
+  if (!d && /前天|그저께/.test(s)) d = addDays(t, -2);
+  else if (!d && /昨天|어제/.test(s)) d = addDays(t, -1);
+  return { date: d || t, rest: s };
+}
+function parseOne(s, date){
+  var amts = findAmounts(s); if (!amts.length) return null;
+  var pick = amts.filter(function(x){ return x.cur; })[0] || amts.slice().sort(function(a,b){ return b.a - a.a; })[0];
+  if (!(pick.a > 0)) return null;
+  var cur = pick.cur;
+  if (!cur){
+    if (/韩元|韩币|원|₩|won|krw|카카오|토스|네이버|쿠팡|배민/i.test(s)) cur = 'KRW';
+    else if (/人民币|rmb|cny|¥|￥|微信|支付宝|淘宝|拼多多|京东/i.test(s)) cur = 'CNY';
+    else cur = pick.a < 100 ? 'CNY' : pick.a >= 1000 ? 'KRW' : (view.lgCur || S.settings.budgetCur);
+  }
+  var pay = /现金|현금|cash/i.test(s) ? 'cash' : /刷卡|信用卡|借记卡|카드|card/i.test(s) ? 'card' : /微信|支付宝|线上|网购|淘宝|拼多多|京东|카카오|토스|네이버|쿠팡|배민|转账/i.test(s) ? 'online' : '';
+  var type = /工资|收入|到账|生活费|奖学金|报销|退款|월급|용돈/.test(s) ? 'in' : /存钱|存了|储蓄|存款|저금|적금/.test(s) ? 'save' : 'out';
+  var note = s.replace(pick.raw, ' ')
+    .replace(/现金|현금|刷卡|信用卡|借记卡|카드|线上支付|微信支付|花了|付了|用了|一共|总共|大概|左右|韩元|韩币|人民币|块钱|今天|昨天|前天/g, ' ')
+    .replace(/[，,、:：]/g, ' ').replace(/\s+/g, ' ').trim();
+  return { type:type, amount: cur === 'KRW' ? Math.round(pick.a) : r2(pick.a), cur:cur, cat: type === 'out' ? guessCat(s) : type === 'in' ? '收入' : '储蓄', date: date || today(), pay:pay, note: note.slice(0, 40) };
+}
+function parseSay(text){
+  var items = [], skipped = 0;
+  String(text || '').split(/[\n；;。]+/).forEach(function(seg){
+    seg = seg.trim(); if (!seg) return;
+    var dt = takeDate(seg), parts = dt.rest.split(/[，、]|,(?!\d{3})/), groups = [], pending = [];
+    parts.forEach(function(p){
+      if (findAmounts(p).length){ groups.push(pending.concat([p])); pending = []; }
+      else if (groups.length) groups[groups.length - 1].push(p);
+      else pending.push(p);
+    });
+    if (!groups.length){ skipped++; return; }
+    groups.forEach(function(g){ var it = parseOne(g.join(' '), dt.date); if (it) items.push(it); else skipped++; });
+  });
+  return { items:items, skipped:skipped };
+}
+function visionPrompt(){
+  var t = today();
+  return '这些图片是一个住在韩国的人的付款记录：可能是付款 App 截图（카카오페이、네이버페이、토스、银行 App、微信、支付宝、淘宝订单）、超市或餐厅的小票（영수증）、刷卡单。请找出图里每一笔支出。\n\n' +
+    '只回复一个 JSON 对象，不要任何别的文字。格式：\n{"items":[{"amount":12500,"currency":"KRW","merchant":"商家名","date":"' + t + '","category":"' + catNames()[0] + '","pay":"card","note":"买了什么"}],"unreadable":false}\n\n' +
+    '规则：\n' +
+    '1. amount 是实际付款金额（합계、결제금액、받을금액、实付、Total），纯数字，不带逗号和货币符号。不要取单价、小计、税额（부가세）、找零（거스름돈）、积分、优惠前的原价。\n' +
+    '2. currency：韩元（원、₩、KRW）写 "KRW"，人民币（¥、元、CNY、RMB）写 "CNY"。同一笔同时显示两种货币时（比如在韩国用微信或支付宝付款），写实际扣款的那种。\n' +
+    '3. category 只能从这些里选一个：' + catNames().join('、') + '。超市买食材选买菜那类；餐厅、外卖、咖啡、便利店买吃的选外食那类。\n' +
+    '4. pay：付款 App 或网购截图写 "online"；小票或刷卡单上有 카드、신용、체크、승인 写 "card"；有 현금 写 "cash"；看不出来写 ""。\n' +
+    '5. date 用 YYYY-MM-DD；图里没有年份就用 ' + t.slice(0, 4) + ' 年；看不出日期写 ""。今天是 ' + t + '。\n' +
+    '6. note 用中文，10 个字以内，写买了什么，比如「超市买菜」「炸鸡外卖」。merchant 保留原文商家名。\n' +
+    '7. 一张图里有多笔消费（比如账单列表）就全部列出；同一笔在几张图里重复出现只记一次。收入、退款、转给自己的钱不要。\n' +
+    '8. 看不清或者不是付款记录，回复 {"items":[],"unreadable":true}。';
+}
+function cleanItems(res){
+  var arr = Array.isArray(res) ? res : res && Array.isArray(res.items) ? res.items : [], t = today(), names = catNames();
+  return arr.map(function(x){
+    if (!isObj(x)) return null;
+    var amount = typeof x.amount === 'number' ? x.amount : (findAmounts(String(x.amount || ''))[0] || {a:0}).a;
+    if (!(amount > 0)) return null;
+    var cs = String(x.currency || '');
+    var cur = /cny|rmb|人民币|元|¥/i.test(cs) ? 'CNY' : /krw|원|₩|韩/i.test(cs) ? 'KRW' : (amount >= 300 ? 'KRW' : 'CNY');
+    var merchant = String(x.merchant || '').trim(), note = String(x.note || '').trim();
+    var cat = names.indexOf(x.category) >= 0 ? x.category : guessCat(note + ' ' + merchant);
+    var date = /^\d{4}-\d{2}-\d{2}$/.test(x.date || '') ? x.date : t;
+    if (date > t) date = t;
+    if (merchant && note.indexOf(merchant) < 0) note = note ? note + ' · ' + merchant : merchant;
+    return { type:'out', amount: cur === 'KRW' ? Math.round(amount) : r2(amount), cur:cur, cat:cat, date:date, pay: PAY_NAME[x.pay] ? x.pay : '', note: note.slice(0, 40) };
+  }).filter(Boolean);
+}
+function shrink(file){
+  return new Promise(function(resolve){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      try {
+        var w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, 2000 / Math.max(w, h)), cv = document.createElement('canvas');
+        cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        cv.toBlob(function(b){ URL.revokeObjectURL(url); resolve(b || file); }, 'image/jpeg', 0.86);
+      } catch(e){ URL.revokeObjectURL(url); resolve(file); }
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+function thumbsHtml(){ return Review.urls.length ? '<div class="thumbs">' + Review.urls.map(function(u){ return '<img src="' + u + '" alt="要识别的图片">'; }).join('') + '</div>' : ''; }
+var VISION_ERR = {
+  not_granted: '需要先允许这个页面用 Claude 看图。没关系，也可以「说一句」或者手动记。',
+  sampling_disabled: '这个账号现在用不了 Claude 看图，先手动记吧。',
+  rate_limited: '这会儿识别的次数用完了，过一会儿再试，或者先「说一句」记下来。',
+  image_rejected: '这张图打不开或者太大了，换一张截图试试。',
+  session_expired: '登录过期了，重新登录 claude.ai 后再试。',
+  refused: '这张图没法识别，换一张试试，或者手动记。',
+  empty_completion: '没认出来，换一张清楚点的图试试。',
+  invalid_json: '没认出来，换一张清楚点的图试试。'
+};
+async function recognize(files){
+  files = files.filter(function(f){ return /^image\//.test(f.type) || /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name || ''); });
+  if (!files.length){ toast('请选一张图片'); return; }
+  if (!Vision.sample){ sheetPhotoHelp(); return; }
+  Review.urls.forEach(function(u){ URL.revokeObjectURL(u); });
+  Review.urls = files.map(function(f){ return URL.createObjectURL(f); });
+  var ctrl = new AbortController(); Vision.ctrl = ctrl;
+  openSheet(sheetHead('正在识别') + thumbsHtml() + '<div class="loading"><span class="spin" aria-hidden="true"></span><span>正在看图，找付款金额…一般要十几秒</span></div><div class="sheet-actions"><button class="btn" data-a="close">取消</button></div>');
+  try {
+    var blobs = await Promise.all(files.map(shrink)), all = [];
+    for (var i = 0; i < blobs.length; i += Vision.max){
+      var res = await Vision.sample.json(visionPrompt(), { images: blobs.slice(i, i + Vision.max), modelTier:'default', signal: ctrl.signal });
+      all = all.concat(cleanItems(res));
+    }
+    if (Vision.ctrl !== ctrl) return;
+    Vision.ctrl = null;
+    if (all.length) sheetReview(all, '认出 ' + all.length + ' 笔，核对一下');
+    else visionFail('图里没找到付款金额。换一张清楚点的截图，或者直接说一句。');
+  } catch(e){
+    if (Vision.ctrl !== ctrl || (e && e.code === 'cancelled')) return;
+    Vision.ctrl = null;
+    if (e && e.code === 'images_unavailable'){ Vision.sample = null; sheetPhotoHelp(); render(); return; }
+    visionFail((e && VISION_ERR[e.code]) || '识别失败了，过一会儿再试，或者先手动记。');
+  }
+}
+function visionFail(msg){
+  openSheet(sheetHead('没识别出来') + thumbsHtml() + '<p class="lead">' + esc(msg) + '</p><div class="sheet-actions">' + photoBtn('btn') + '<button class="btn primary" data-a="go" data-tab="ledger">去手动记</button></div>');
+}
+function sheetPhotoHelp(){
+  openSheet(sheetHead('截图 / 小票识别') +
+    '<p class="lead">' + (window.claude && typeof window.claude.use === 'function' ? '这里现在不能直接看图，可以借 Claude App 认一下：' : '桌面版不接 AI，所以免费。识别图片要借一下 Claude App：') + '</p>' +
+    '<ol class="steps help"><li><span>点「复制提示词」</span></li><li><span>打开 Claude App，粘贴提示词，再附上付款截图或小票照片，发送</span></li><li><span>把 Claude 的回复整段复制，粘贴到下面</span></li></ol>' +
+    '<div class="row" style="margin:14px 0"><button class="btn primary" data-a="copy-prompt">' + ic('copy') + '复制提示词</button></div>' +
+    '<form class="form" data-f="ai-reply" autocomplete="off"><textarea name="reply" aria-label="Claude 的回复" placeholder="把 Claude 的回复粘贴到这里"></textarea><button class="btn soft" type="submit">读取并核对</button></form>' +
+    '<p class="hint" style="margin-top:12px">现金付的，或者只想快点记：在账本里「说一句」，比如「现金 1.2万韩元 买菜」。</p>');
+}
+function sheetReview(items, title, extra){
+  Review.items = items;
+  var cats = catNames();
+  var html = sheetHead(esc(title)) + thumbsHtml() + '<form class="form" data-f="review" autocomplete="off"><div class="rv-list">' + items.map(function(x, i){
+    var dup = S.ledger.some(function(r){ return r.amount === x.amount && r.cur === x.cur && r.date === x.date && r.type === x.type; });
+    var cv = x.type === 'in' ? '__in' : x.type === 'save' ? '__save' : x.cat;
+    return '<div class="rv' + (dup ? ' dup' : '') + '"><div class="between"><label class="check-row"><input type="checkbox" name="on-' + i + '"' + (dup ? '' : ' checked') + '><b>第 ' + (i + 1) + ' 笔</b></label>' + (dup ? '<span class="tag warn">这笔好像记过了</span>' : '') + '</div>' +
+      '<div class="rv-amt"><input type="text" inputmode="decimal" name="amt-' + i + '" value="' + x.amount + '" aria-label="金额"><select name="cur-' + i + '" aria-label="币种">' + curOpts(x.cur) + '</select></div>' +
+      '<div class="grid2"><select name="cat-' + i + '" aria-label="类别">' + cats.map(function(n){ return '<option value="' + esc(n) + '"' + (cv === n ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') +
+        '<option value="__in"' + (cv === '__in' ? ' selected' : '') + '>收入</option><option value="__save"' + (cv === '__save' ? ' selected' : '') + '>存钱</option></select>' +
+        '<input type="date" name="date-' + i + '" value="' + x.date + '" aria-label="日期"></div>' +
+      '<div class="grid2"><input type="text" name="note-' + i + '" value="' + esc(x.note) + '" placeholder="备注" aria-label="备注"><select name="pay-' + i + '" aria-label="付款方式">' + PAYS.map(function(o){ return '<option value="' + o[0] + '"' + (x.pay === o[0] ? ' selected' : '') + '>' + (o[0] ? o[1] : '付款方式') + '</option>'; }).join('') + '</select></div></div>';
+  }).join('') + '</div>' + (extra || '') + '<div class="sheet-actions"><button class="btn primary" type="submit">' + ic('check') + '记下来</button></div></form>';
+  openSheet(html);
+}
+
+/* ---------------- 敲两下背面：快捷指令把截图里的文字发过来 ---------------- */
+var HOME_URL = 'https://yuxian695-alt.github.io/diet/life/';
+function inArtifact(){ return !!(window.claude && typeof window.claude.use === 'function'); }
+function appUrl(){ return !inArtifact() && /^https?:$/.test(location.protocol) ? location.origin + location.pathname.replace(/index\.html$/, '') : HOME_URL; }
+var MERCHANTS = /GS25|세븐일레븐|이마트24|이마트|홈플러스|롯데마트|코스트코|쿠팡|배달의민족|배민|요기요|스타벅스|메가커피|컴포즈커피|빽다방|투썸|이디야|다이소|올리브영|맥도날드|버거킹|롯데리아|맘스터치|파리바게뜨|뚜레쥬르|컬리|무신사|티머니|카카오\s*T|淘宝|天猫|拼多多|京东|美团|饿了么|星巴克|瑞幸|\bCU\b/i;
+var SHOT_TOTAL = /결제\s*금액|합\s*계|총\s*액|총\s*결제|총\s*금액|받을\s*금액|청구\s*금액|승인\s*금액|이용\s*금액|결제\s*완료|실\s*결제|결제했|实付|付款金额|支付金额|合计|总计|应付|支付成功|付款成功|交易金额/i;
+var SHOT_SKIP = /부가세|부가가치세|과세|면세|공급가|거스름|받은\s*금액|포인트|할인|적립|잔액|누적|한도|단가|수량|번호|전화|사업자|가맹|vat|tax|tel|找零|优惠|余额|积分|折扣|原价|立减|单号|编号|电话/i;
+function stripNoise(s){
+  return s.replace(/\d{4}\s*[.\-\/년年]\s*\d{1,2}\s*[.\-\/월月]\s*\d{1,2}\s*[일日]?/g, ' ')
+    .replace(/\d{1,2}\s*월\s*\d{1,2}\s*일|\d{1,2}\s*月\s*\d{1,2}\s*日/g, ' ')
+    .replace(/\d{1,2}:\d{2}(?::\d{2})?/g, ' ')
+    .replace(/\d{2,4}-\d{3,4}-\d{4}|\d{3}-\d{2}-\d{5}/g, ' ')
+    .replace(/[\d*]{4}[-\s][\d*]{4}[-\s][\d*]{4}[-\s][\d*]{2,4}/g, ' ')
+    .replace(/\(\d{3,4}\)|\*{2,}\d*/g, ' ')
+    .replace(/(^|\s)\d{1,2}\/\d{1,2}(?=\s|$)/g, ' ');
+}
+function shotDate(s){
+  var t = today(), y = +t.slice(0, 4), m;
+  function mk(Y, M, D, explicit){
+    M = +M; D = +D; if (!(M >= 1 && M <= 12 && D >= 1 && D <= 31)) return t;
+    var d = Y + '-' + pad(M) + '-' + pad(D);
+    if (d > t) return explicit ? t : (Y - 1) + '-' + pad(M) + '-' + pad(D);
+    return d;
+  }
+  if ((m = s.match(/(20\d{2})\s*[.\-\/년年]\s*(\d{1,2})\s*[.\-\/월月]\s*(\d{1,2})/))) return mk(+m[1], m[2], m[3], true);
+  if ((m = s.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일|(\d{1,2})\s*月\s*(\d{1,2})\s*日/))) return mk(y, m[1] || m[3], m[2] || m[4]);
+  if ((m = s.match(/(?:^|\s|\))(\d{1,2})\/(\d{1,2})(?=\s|$)/))) return mk(y, m[1], m[2]);
+  if (/어제|昨天/.test(s)) return addDays(t, -1);
+  return t;
+}
+function parseShot(raw){
+  var text = String(raw || '').replace(/\r/g, '');
+  var lines = text.split(/\n+/).map(function(l){ return l.trim(); }).filter(Boolean);
+  var isTotal = function(ln){ return SHOT_TOTAL.test(ln) || (/total/i.test(ln) && !/sub\s*-?\s*total/i.test(ln)); };
+  var cands = [];
+  lines.forEach(function(ln, i){
+    var clean = stripNoise(ln), prevTotal = i > 0 && isTotal(lines[i - 1]) && !findAmounts(stripNoise(lines[i - 1])).length;
+    findAmounts(clean).forEach(function(a){
+      if (!(a.a > 0) || a.a > 1e8) return;
+      var prefix = clean.slice(Math.max(0, a.idx - 10), a.idx), bare = !a.cur && a.raw.indexOf(',') < 0, sc = 0;
+      if (a.cur) sc += 3;
+      if (/\d,\d{3}/.test(a.raw)) sc += 1.5;
+      if (/\.\d{2}(?!\d)/.test(a.raw)) sc += 0.5;
+      if (isTotal(ln)) sc += 5; else if (prevTotal) sc += 4;
+      if (SHOT_SKIP.test(prefix)) sc -= 6;
+      if (/[-−]\s*$/.test(prefix)) sc += 1;
+      if (bare && a.a < 100) sc -= 2;
+      if (bare && a.a >= 1e6) sc -= 5;
+      cands.push({a:a.a, cur:a.cur, sc:sc});
+    });
+  });
+  if (!cands.length) return null;
+  cands.sort(function(x, y){ return (y.sc - x.sc) || (y.a - x.a); });
+  var best = cands[0];
+  var rivals = cands.filter(function(c){ return c.a !== best.a && c.sc >= Math.min(best.sc, 3); });
+  var confident = best.sc >= 3 && !rivals.some(function(c){ return c.sc >= best.sc - 0.5; }) && (best.sc >= 6.5 || !rivals.length);
+  var cur = best.cur || (/원|₩|krw/i.test(text) ? 'KRW' : /[¥￥元]|rmb|cny/i.test(text) ? 'CNY' : best.a >= 1000 ? 'KRW' : best.a < 100 ? 'CNY' : S.settings.budgetCur);
+  var mer = (text.match(MERCHANTS) || [''])[0].trim();
+  var pay = /카카오\s*페이|네이버\s*페이|토스|페이코|삼성\s*페이|애플\s*페이|apple\s*pay|微信|支付宝|云闪付/i.test(text) ? 'online' : /현금/.test(text) ? 'cash' : /카드|승인|일시불|신용|체크/.test(text) ? 'card' : '';
+  return { confident: confident, item: { type:'out', amount: cur === 'KRW' ? Math.round(best.a) : r2(best.a), cur:cur, cat: guessCat(text), date: shotDate(text), pay:pay, note: mer || '截图记账' } };
+}
+function ocrHtml(txt){ return txt ? '<details class="ocr"><summary>截图里认出的文字</summary><pre>' + esc(String(txt).slice(0, 2000)) + '</pre></details>' : ''; }
+function handleShot(){
+  var h = location.hash || '';
+  if (h.indexOf('#shot=') !== 0) return false;
+  var raw = h.slice(6), txt;
+  try { txt = decodeURIComponent(raw); } catch(e){ txt = raw; }
+  try { history.replaceState(null, '', location.pathname + location.search + '#ledger'); } catch(e){}
+  closeSheet();
+  view.tab = 'ledger';
+  var r = parseShot(txt);
+  if (!r){
+    view.month = monthOf(today()); render();
+    openSheet(sheetHead('截图里没找到金额') + '<p class="lead">可能截到的不是付款页面。付完款停在「支付成功」页或者小票上再敲两下，或者直接说一句、手动记。</p>' + ocrHtml(txt) +
+      '<div class="sheet-actions"><button class="btn primary" data-a="say-focus">说一句</button><button class="btn" data-a="close">手动记</button></div>');
+    return true;
+  }
+  var x = r.item, dup = S.ledger.some(function(z){ return z.type === 'out' && z.amount === x.amount && z.cur === x.cur && z.date === x.date; });
+  view.month = monthOf(x.date);
+  if (r.confident && !dup){
+    var rec = Object.assign({id:uid()}, x);
+    S.ledger.push(rec); commit('ledger');
+    toast('已自动记账：' + rec.cat + ' ' + fmtC(rec.amount, rec.cur), function(){ S.ledger = S.ledger.filter(function(z){ return z.id !== rec.id; }); commit('ledger'); toast('撤销了'); });
+  } else {
+    render();
+    Review.urls = [];
+    sheetReview([x], dup ? '这笔好像记过了，确认一下' : '没太认准，核对一下', ocrHtml(txt));
+  }
+  return true;
+}
+function sheetShortcut(){
+  var u = appUrl() + '#shot=';
+  openSheet(sheetHead('敲两下背面，自动记账') +
+    '<p class="lead">付完款停在「支付成功」页面或者小票上，敲两下手机背面：自动截图，手机自己认出上面的字，打开生活管家把这笔记好。文字识别在手机上完成，不花钱。</p>' +
+    (inArtifact() ? '<p class="note">这个功能要用 Safari 打开的生活管家（' + esc(HOME_URL) + '）。claude.ai 里的这个版本收不到快捷指令发来的内容，两边的账也不互通。</p>' : '') +
+    '<h4 class="sh-h">第一步：做一个快捷指令（只做一次）</h4><ol class="steps help">' +
+    '<li><span>打开「快捷指令」App，点右上角 <b>+</b></span></li>' +
+    '<li><span>点「添加操作」，搜索并添加 <b>截取屏幕快照</b></span></li>' +
+    '<li><span>再添加 <b>从图像中提取文本</b>，它会自动用上一步的截图</span></li>' +
+    '<li><span>再添加 <b>URL 编码</b>（搜「URL」就能找到），它会自动用上一步的文字</span></li>' +
+    '<li><span>再添加 <b>打开 URL</b>。点它的输入框，先粘贴下面这段，再紧跟着插入变量 <b>URL 编码后的文本</b></span></li></ol>' +
+    '<div class="copy-row"><code>' + esc(u) + '</code><button class="btn sm" data-a="copy-sc">' + ic('copy') + '复制</button></div>' +
+    '<ol class="steps help" style="counter-reset:s 5"><li><span>点最上面的名字，改成 <b>记一笔</b>，点「完成」</span></li></ol>' +
+    '<h4 class="sh-h">第二步：绑定敲两下</h4><ol class="steps help"><li><span>打开 <b>设置 → 辅助功能 → 触控 → 轻点背面 → 轻点两下</b>，选 <b>记一笔</b></span></li>' +
+    '<li><span>第一次运行时，快捷指令会问能不能打开这个网址，点 <b>允许</b></span></li></ol>' +
+    '<h4 class="sh-h">用起来是这样</h4><p class="hint">认准了会直接记好，屏幕下面出现「撤销」，记错了点一下就行。没认准、或者看起来记过了，会先让你核对。识别靠的是手机自带的文字识别：付款完成页、带「합계 / 결제금액 / 实付」的小票最准。</p>' +
+    '<p class="hint" style="margin-top:8px">快捷指令会用 Safari 打开生活管家，所以平时也请在 Safari 里用它，账才在一起。加到主屏幕时如果看到「作为 Web App 打开」，把它关掉。</p>' +
+    '<div class="sheet-actions"><button class="btn" data-a="shot-demo">用一张示例试试</button><button class="btn primary" data-a="close">知道了</button></div>');
+}
+
+/* ---------------- toast ---------------- */
+var toastTimer = 0;
+function toast(msg, undo){
+  var el = $('#toast');
+  el.textContent = msg;
+  if (undo){ var b = document.createElement('button'); b.type = 'button'; b.className = 'toast-btn'; b.textContent = '撤销'; b.onclick = function(){ el.hidden = true; undo(); }; el.appendChild(b); }
+  el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.hidden = true; }, undo ? 8000 : 2600);
+}
+
+/* ---------------- actions ---------------- */
+function setTab(t){
+  if (!TABS.some(function(x){ return x[0] === t; })) t = 'home';
+  view.tab = t; view.editTodo = null;
+  render();
+}
+function go(t){
+  closeSheet();
+  if (location.hash !== '#' + t){ try { location.hash = t; } catch(e){} }
+  setTab(t);
+  window.scrollTo({top:0, behavior:'auto'});
+}
+function arm(el, fn){
+  if (el.dataset.armed === '1'){ fn(); return; }
+  el.dataset.armed = '1'; el.classList.add('armed');
+  var old = el.getAttribute('aria-label') || '';
+  el.setAttribute('aria-label', '再点一次确认删除');
+  if (el.classList.contains('btn')){ el.dataset.txt = el.innerHTML; el.textContent = '再点一次确认'; }
+  setTimeout(function(){ if (!document.contains(el)) return; el.dataset.armed = ''; el.classList.remove('armed'); el.setAttribute('aria-label', old); if (el.dataset.txt) el.innerHTML = el.dataset.txt; }, 3000);
+}
+function removeFood(id, wasted){
+  var f = S.fridge.find(function(x){ return x.id === id; }); if (!f) return;
+  S.fridge = S.fridge.filter(function(x){ return x.id !== id; });
+  stat(monthOf(today()))[wasted ? 'wasted' : 'used']++;
+  closeSheet(); commit('fridge','settings');
+  toast(wasted ? f.name + ' 扔掉了，下次少买一点' : f.name + ' 吃完了');
+}
+function setMeal(day, k, val){
+  S.meals[day] = Object.assign({}, S.meals[day] || {});
+  if (val) S.meals[day][k] = val; else delete S.meals[day][k];
+}
+function copyText(text, okMsg){
+  function fallback(){
+    openSheet(sheetHead('复制下面的内容') + '<textarea id="copy-box" readonly style="min-height:240px">' + esc(text) + '</textarea><p class="hint">长按或全选后复制。</p>');
+    var box = $('#copy-box'); if (box){ box.focus(); box.select(); }
+  }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function(){ toast(okMsg); }, fallback);
+    else fallback();
+  } catch(e){ fallback(); }
+}
+function importData(text){
+  var data;
+  try { data = JSON.parse(text); } catch(e){ toast('这段内容不是有效的备份，检查一下有没有复制完整'); return; }
+  if (!isObj(data) || !(Array.isArray(data.ledger) || Array.isArray(data.fridge) || Array.isArray(data.todos))){ toast('这段内容里没有找到账本、冰箱或待办数据'); return; }
+  S = normalize(data); closeSheet(); commit(); toast('恢复好了');
+}
+
+var A = {
+  tab: function(el, e){ e.preventDefault(); go(el.dataset.tab); },
+  go: function(el){ go(el.dataset.tab); },
+  'go-month': function(el){ view.month = el.dataset.m; go('ledger'); },
+  close: closeSheet,
+  search: sheetSearch,
+  gen: sheetGenerate,
+  backup: sheetBackup,
+  'clear-sample': function(el){ arm(el, function(){ var keep = S.settings; S = freshState(); S.settings.prefs = keep.prefs; commit(); toast('示例清空了，开始记你自己的吧'); }); },
+  // ledger
+  month: function(el){ var d = +el.dataset.d; view.month = addMonths(view.month, d); render(); },
+  'lg-del': function(el){ arm(el, function(){ S.ledger = S.ledger.filter(function(r){ return r.id !== el.dataset.id; }); commit('ledger'); toast('删掉了'); }); },
+  budget: sheetBudget,
+  rate: sheetRate,
+  'show-cur': function(el){ S.settings.showCur = el.dataset.c; commit('settings'); },
+  'rate-fetch': async function(el){
+    el.disabled = true; el.textContent = '正在查…';
+    try {
+      var res = await fetch('https://open.er-api.com/v6/latest/CNY'), j = await res.json(), k = j && j.rates && j.rates.KRW;
+      if (!(k > 0)) throw new Error('no rate');
+      $('#rate-in').value = fmtRate(k); $('#rate-eg').textContent = rateEg(k);
+      $('#rate-hint').textContent = '查到的是 ' + (j.time_last_update_utc ? new Date(j.time_last_update_utc).toLocaleDateString('zh-CN') : '今天') + ' 的参考汇率（来自 open.er-api.com），点保存生效。';
+    } catch(e){ var h = $('#rate-hint'); if (h) h.textContent = '没查到，可能没联网。手动填一个数字也可以。'; }
+    if (document.contains(el)){ el.disabled = false; el.innerHTML = ic('refresh') + '联网查今天的汇率'; }
+  },
+  'photo-help': sheetPhotoHelp,
+  shortcut: sheetShortcut,
+  'copy-sc': function(){ copyText(appUrl() + '#shot=', '已复制，去快捷指令的「打开 URL」里粘贴'); },
+  'shot-demo': function(){ location.hash = 'shot=' + encodeURIComponent('16:54\n결제 완료\n12,500원\nGS25 역삼점\n토스페이\n' + today().replace(/-/g, '.') + ' 14:05'); },
+  'say-focus': function(){ var el = $('#say-in'); if (!el) return; el.scrollIntoView({block:'center'}); el.focus({preventScroll:true}); },
+  'copy-prompt': function(){ copyText(visionPrompt(), '提示词已复制，去 Claude App 粘贴，再附上截图'); },
+  'bd-add': function(){ $('#bd-rows').insertAdjacentHTML('beforeend', budgetRow('', 0)); var ins = $$('#bd-rows input[name=cn]'); ins[ins.length-1].focus(); budgetSum(); },
+  'bd-del': function(el){ el.closest('.bd-row').remove(); budgetSum(); },
+  // fridge
+  'fridge-filter': function(el){ view.fridgeFilter = el.dataset.f; render(); },
+  'food-add': function(){ sheetFood(null); },
+  'food-edit': function(el){ sheetFood(el.dataset.id); },
+  'food-minus': function(el, e){
+    e.stopPropagation();
+    var f = S.fridge.find(function(x){ return x.id === el.dataset.id; }); if (!f) return;
+    var step = (f.unit === 'g' || f.unit === 'ml') ? (f.qty > 100 ? 100 : f.qty) : Math.min(1, f.qty);
+    f.qty = r2(f.qty - step);
+    if (f.qty <= 0.0001){ S.fridge = S.fridge.filter(function(x){ return x.id !== f.id; }); stat(monthOf(today())).used++; commit('fridge','settings'); toast(f.name + ' 吃完了'); }
+    else { commit('fridge'); toast(f.name + ' 还剩 ' + fmtQty(f.qty, f.unit)); }
+  },
+  'food-done': function(el){ removeFood(el.dataset.id, false); },
+  'food-waste': function(el){ removeFood(el.dataset.id, true); },
+  recipe: function(el){ sheetRecipe(el.dataset.r); },
+  // meals
+  'meal-day': function(el){ view.mealDay = el.dataset.day; render(); },
+  'meal-slot': function(el){
+    view.mealSlot = el.dataset.k; render();
+    var rp = $('#rp'); if (rp && window.innerWidth <= 900) rp.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
+  },
+  'meal-cell': function(el){ view.mealDay = el.dataset.day; view.mealSlot = el.dataset.k; render(); var rp = $('#rp'); if (rp && window.innerWidth <= 900) rp.scrollIntoView({block:'start'}); },
+  'home-meal': function(el){ view.mealStart = today(); view.mealDay = today(); view.mealSlot = el.dataset.k; go('meals'); },
+  week: function(el){ var d = +el.dataset.d; view.mealStart = d === 0 ? today() : addDays(view.mealStart, d); view.mealDay = view.mealStart; render(); },
+  pick: function(el){ sheetPicker(el.dataset.day, el.dataset.k); },
+  'pick-set': function(el){ var p = view.pick; if (!p) return; setMeal(p.day, p.k, {r:el.dataset.r}); view.mealDay = p.day; view.mealSlot = p.k; closeSheet(); commit('meals'); toast('安排好了：' + RMAP[el.dataset.r].n); },
+  'pick-clear': function(){ var p = view.pick; if (!p) return; setMeal(p.day, p.k, null); closeSheet(); commit('meals'); },
+  'auto-one': function(){
+    var day = view.mealDay, k = view.mealSlot, p = S.settings.prefs;
+    var plan = planWeek(S.fridge, S.meals, {start:day, slots:[k], maxTime:+p.maxTime || 20, tags:p.tags, keep:true});
+    var e = plan[day] && plan[day][k];
+    if (e && e.r){ setMeal(day, k, e); commit('meals'); toast('就吃' + RMAP[e.r].n + '吧'); }
+  },
+  'plan-it': function(el){ var d = $('#pl-day').value, k = $('#pl-slot').value; setMeal(d, k, {r:el.dataset.r}); closeSheet(); commit('meals'); toast('放进了 ' + (d === today() ? '今天' : md(d)) + SLOT_NAME[k]); },
+  'recipe-shop': function(el){
+    var r = RMAP[el.dataset.r], miss = missingFor(r);
+    if (!miss.length){ toast('食材都齐了，不用买'); return; }
+    var n = addShop(miss); commit('shop');
+    toast(n ? '加入采购清单 ' + n + ' 样：' + miss.map(function(x){ return x.n; }).join('、') : '这些已经在清单里了');
+  },
+  cook: function(el){
+    var r = RMAP[el.dataset.r], used = cook(r); closeSheet(); commit('fridge','settings');
+    toast(used.length ? '吃饱啦，已扣掉 ' + used.join('、') : '冰箱里没有这道菜的食材，没扣');
+  },
+  'shop-week': function(){ var miss = weekNeeds(today()); var n = addShop(miss); commit('shop'); toast(n ? '加入采购清单 ' + n + ' 样' : '缺的食材已经都在清单里了'); },
+  // todos
+  'todo-filter': function(el){ view.todoFilter = el.dataset.f; view.editTodo = null; render(); },
+  'todo-toggle': function(el){
+    var x = S.todos.find(function(i){ return i.id === el.dataset.id; }); if (!x) return;
+    var t = today();
+    x.done = !x.done; x.doneAt = x.done ? t : '';
+    if (x.done && x.rep){
+      var base = x.d > t ? x.d : t, next = addDays(base, x.rep === 'daily' ? 1 : 7);
+      if (!S.todos.some(function(i){ return i.t === x.t && i.d === next && !i.done; })) S.todos.push({id:uid(), t:x.t, d:next, done:false, doneAt:'', rep:x.rep});
+    }
+    commit('todos');
+    if (x.done){ var tl = todayTodos(); if (tl.length && tl.every(function(i){ return i.done; })) toast('今天的事都做完了'); }
+  },
+  'todo-del': function(el){ arm(el, function(){ S.todos = S.todos.filter(function(i){ return i.id !== el.dataset.id; }); commit('todos'); }); },
+  'todo-edit': function(el){ view.editTodo = el.dataset.id; render(); var inp = $('.todo-edit input[name=t]'); if (inp) inp.focus(); },
+  'todo-cancel': function(){ view.editTodo = null; render(); },
+  'todo-quick': function(el){ S.todos.push({id:uid(), t:el.dataset.t, d:today(), done:false, doneAt:'', rep:''}); commit('todos'); toast('加上了：' + el.dataset.t); },
+  // shop
+  'shop-toggle': function(el){ var x = S.shop.find(function(i){ return i.id === el.dataset.id; }); if (!x) return; x.done = !x.done; commit('shop'); },
+  'shop-del': function(el){ S.shop = S.shop.filter(function(i){ return i.id !== el.dataset.id; }); commit('shop'); },
+  'shop-clear': function(el){ arm(el, function(){ S.shop = S.shop.filter(function(i){ return !i.done; }); commit('shop'); }); },
+  'shop-copy': function(){
+    var pend = S.shop.filter(function(x){ return !x.done; });
+    if (!pend.length){ toast('清单是空的'); return; }
+    copyText('采购清单（' + md(today()) + '）\n' + pend.map(function(x){ return '· ' + x.n + (shopQty(x) ? ' ' + shopQty(x) : ''); }).join('\n'), '清单已复制，可以粘贴到备忘录');
+  },
+  bought: sheetBought,
+  // backup
+  'bk-copy': function(){ copyText(JSON.stringify(S), '备份已复制，存到备忘录里吧'); },
+  'bk-download': async function(){
+    var data = JSON.stringify(S, null, 1), filename = '生活管家备份-' + today() + '.json';
+    if (window.claude && typeof window.claude.use === 'function'){
+      try { var dl = await window.claude.use('downloads'); if (dl){ await dl.save({filename:filename, data:data}); return; } } catch(e){ if (e && e.code && e.code !== 'unavailable') return; }
+    }
+    try { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], {type:'application/json'})); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
+    catch(e){ toast('这里不能下载文件，用「复制备份」吧'); }
+  },
+  'bk-import': function(){
+    var file = $('#bk-file') && $('#bk-file').files[0], text = $('#bk-text') ? $('#bk-text').value.trim() : '';
+    if (file){ var rd = new FileReader(); rd.onload = function(){ importData(String(rd.result || '')); }; rd.onerror = function(){ toast('文件读不出来，换一个试试'); }; rd.readAsText(file); return; }
+    if (!text){ toast('先粘贴备份内容，或者选一个备份文件'); return; }
+    importData(text);
+  },
+  'bk-wipe': function(el){ arm(el, function(){ S = freshState(); closeSheet(); commit(); toast('全部清空了'); }); }
+};
+
+var F = {
+  ledger: function(f){
+    var fd = new FormData(f), type = fd.get('type') || 'out', cur = fd.get('cur') === 'CNY' ? 'CNY' : 'KRW', amount = amountOf(fd.get('amount'), cur);
+    if (!(amount > 0)){ toast('金额要大于 0'); $('#lg-amount').focus(); return; }
+    var cat = type === 'out' ? (fd.get('cat') || '其他') : type === 'in' ? '收入' : '储蓄';
+    var date = fd.get('date') || today();
+    S.ledger.push({id:uid(), date:date, type:type, cat:cat, amount:amount, cur:cur, pay: fd.get('pay') || '', note:String(fd.get('note') || '').trim()});
+    view.lgType = type; view.lgCur = cur; if (type === 'out') view.lgCat = cat;
+    view.month = monthOf(date);
+    commit('ledger');
+    toast('记好了：' + (type === 'out' ? cat : type === 'in' ? '收入' : '存钱') + ' ' + fmtC(amount, cur));
+    var a = $('#lg-amount'); if (a) a.focus({preventScroll:true});
+  },
+  say: function(f){
+    var r = parseSay(new FormData(f).get('say'));
+    if (!r.items.length){ toast('没找到金额，写成「现金 12000韩元 买菜」这样试试'); return; }
+    Review.urls = [];
+    sheetReview(r.items, '认出 ' + r.items.length + ' 笔' + (r.skipped ? '（有 ' + r.skipped + ' 句没找到金额）' : '') + '，核对一下');
+  },
+  'ai-reply': function(f){
+    var txt = String(new FormData(f).get('reply') || ''), i = txt.indexOf('{'), j = txt.lastIndexOf('}'), data = null;
+    if (i >= 0 && j > i){ try { data = JSON.parse(txt.slice(i, j + 1)); } catch(e){} }
+    if (!data){ toast('没读出来，确认把 Claude 的回复整段复制过来了'); return; }
+    var items = cleanItems(data);
+    if (!items.length){ toast(data.unreadable ? 'Claude 说这张图看不清，换一张试试' : '回复里没有付款金额'); return; }
+    sheetReview(items, '认出 ' + items.length + ' 笔，核对一下');
+  },
+  review: function(f){
+    var fd = new FormData(f), added = [], sums = {KRW:0, CNY:0};
+    Review.items.forEach(function(x, i){
+      if (!fd.get('on-' + i)) return;
+      var cur = fd.get('cur-' + i) === 'CNY' ? 'CNY' : 'KRW', amount = amountOf(fd.get('amt-' + i), cur);
+      if (!(amount > 0)) return;
+      var cv = String(fd.get('cat-' + i) || ''), type = cv === '__in' ? 'in' : cv === '__save' ? 'save' : 'out';
+      var rec = {id:uid(), date: fd.get('date-' + i) || today(), type:type, cat: type === 'out' ? (cv || '其他') : type === 'in' ? '收入' : '储蓄', amount:amount, cur:cur, pay: fd.get('pay-' + i) || '', note:String(fd.get('note-' + i) || '').trim()};
+      S.ledger.push(rec); added.push(rec); sums[cur] += amount;
+    });
+    if (!added.length){ toast('没有勾选要记的'); return; }
+    view.month = monthOf(added[0].date);
+    closeSheet(); commit('ledger');
+    if (view.tab === 'ledger'){ var say = $('#say-in'); if (say) say.value = ''; }
+    toast('记好了 ' + added.length + ' 笔：' + splitText(sums));
+  },
+  rate: function(f){
+    var r = num(new FormData(f).get('rate'));
+    if (!(r >= 50 && r <= 1000)){ toast('汇率看起来不对，1 人民币一般是一两百韩元'); return; }
+    S.settings.rate = r2(r); S.settings.rateAt = today();
+    closeSheet(); commit('settings'); toast('汇率改好了：' + rateText());
+  },
+  food: function(f){
+    var fd = new FormData(f), name = String(fd.get('name')).trim();
+    if (!name){ toast('写一下是什么食材'); return; }
+    var qty = num(fd.get('qty')), item = { name:name, emoji:String(fd.get('emoji') || '🍽️').trim() || '🍽️', qty:qty, unit:String(fd.get('unit') || '').trim(), expire:fd.get('expire') || today(), place:fd.get('place') || '冷藏' };
+    var id = f.dataset.id;
+    if (id){ var cur = S.fridge.find(function(x){ return x.id === id; }); if (cur) Object.assign(cur, item); }
+    else S.fridge.push(Object.assign({id:uid(), added:today()}, item));
+    closeSheet(); commit('fridge'); toast(id ? '改好了' : name + ' 放进冰箱了');
+  },
+  budget: function(f){
+    var rows = $$('.bd-row', f).map(function(r){ return {n:$('input[name=cn]', r).value.trim(), b:r2(num($('input[name=cb]', r).value))}; }).filter(function(c){ return c.n; });
+    if (!rows.length){ toast('至少留一个类别'); return; }
+    S.settings.cats = rows; S.settings.saveGoal = r2(num(new FormData(f).get('saveGoal'))); S.settings.budgetCur = new FormData(f).get('bcur') === 'CNY' ? 'CNY' : 'KRW';
+    if (view.lgCat && !rows.some(function(c){ return c.n === view.lgCat; })) view.lgCat = null;
+    closeSheet(); commit('settings'); toast('预算改好了');
+  },
+  gen: function(f){
+    var fd = new FormData(f), slots = fd.getAll('slots'), tags = fd.getAll('tags'), maxTime = +fd.get('maxTime') || 20;
+    if (!slots.length){ toast('至少选一顿'); return; }
+    S.settings.prefs = {slots:slots, maxTime:maxTime, tags:tags};
+    var t = today();
+    S.meals = planWeek(S.fridge, S.meals, {start:t, slots:slots, maxTime:maxTime, tags:tags, keep:!!fd.get('keep')});
+    var n = 0; if (fd.get('shop')) n = addShop(weekNeeds(t));
+    view.mealStart = t; view.mealDay = t;
+    closeSheet(); commit('meals','shop','settings'); go('meals');
+    toast('排好了 7 天的菜单' + (n ? '，采购清单新增 ' + n + ' 样' : ''));
+  },
+  'pick-custom': function(f){ var p = view.pick; var txt = String(new FormData(f).get('t') || '').trim(); if (!p || !txt) return; setMeal(p.day, p.k, {t:txt}); view.mealDay = p.day; view.mealSlot = p.k; closeSheet(); commit('meals'); },
+  bought: function(f){
+    var fd = new FormData(f), t = today(), moved = [];
+    S.shop.filter(function(x){ return x.done; }).forEach(function(x){
+      if (!fd.get('in-' + x.id)) return;
+      var c = FOODS[x.n], qty = x.a, unit = x.u;
+      if (qty == null || !(qty > 0)){ var m = String(x.q || '').match(/^\s*([\d.]+)\s*(.*)$/); qty = m ? num(m[1]) : 1; unit = m && m[2] ? m[2].trim() : (c ? c[1] : '份'); }
+      var same = S.fridge.find(function(f2){ return f2.name === x.n && f2.unit === unit && f2.expire === (fd.get('exp-' + x.id) || t); });
+      if (same) same.qty = r2(same.qty + qty);
+      else S.fridge.push({id:uid(), name:x.n, emoji:c ? c[0] : '🍽️', qty:qty, unit:unit || (c ? c[1] : '份'), expire:fd.get('exp-' + x.id) || addDays(t, 7), place:c ? c[3] : '冷藏', added:t});
+      moved.push(x.n);
+    });
+    var bcur = fd.get('cur') === 'CNY' ? 'CNY' : 'KRW', amount = amountOf(fd.get('amount'), bcur);
+    if (amount > 0) S.ledger.push({id:uid(), date:t, type:'out', cat:String(fd.get('cat') || '买菜做饭'), amount:amount, cur:bcur, pay:'', note:'采购：' + S.shop.filter(function(x){ return x.done; }).map(function(x){ return x.n; }).slice(0,6).join(' ')});
+    S.shop = S.shop.filter(function(x){ return !x.done; });
+    closeSheet(); commit('shop','fridge','ledger');
+    toast((moved.length ? moved.length + ' 样收进冰箱' : '清单整理好了') + (amount > 0 ? '，记账 ' + fmtC(amount, bcur) : ''));
+  },
+  'todo-add': function(f){
+    var fd = new FormData(f), txt = String(fd.get('t') || '').trim(); if (!txt) return;
+    S.todos.push({id:uid(), t:txt, d:fd.get('d') || today(), done:false, doneAt:'', rep:fd.get('rep') || ''});
+    commit('todos'); toast('加上了：' + txt);
+    var inp = $('#td-text'); if (inp) inp.focus({preventScroll:true});
+  },
+  'todo-edit': function(f){
+    var fd = new FormData(f), x = S.todos.find(function(i){ return i.id === f.dataset.id; }); if (!x) return;
+    var txt = String(fd.get('t') || '').trim(); if (!txt) return;
+    x.t = txt; x.d = fd.get('d') || x.d; x.rep = fd.get('rep') || '';
+    view.editTodo = null; commit('todos');
+  },
+  'shop-add': function(f){
+    var fd = new FormData(f), n = String(fd.get('n') || '').trim(); if (!n) return;
+    var q = String(fd.get('q') || '').trim(), m = q.match(/^\s*([\d.]+)\s*(.*)$/), c = FOODS[n];
+    var item = {id:uid(), n:n, a:null, u:'', q:q, from:'', done:false};
+    if (m){ item.a = num(m[1]); item.u = m[2].trim() || (c ? c[1] : ''); item.q = ''; }
+    S.shop.push(item); commit('shop');
+    var inp = $('#sh-name'); if (inp) inp.focus({preventScroll:true});
+  }
+};
+
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-a]'); if (!el) return;
+  var fn = A[el.dataset.a]; if (!fn) return;
+  if (el.tagName === 'A') e.preventDefault();
+  fn(el, e);
+});
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && !$('#sheet').hidden){ closeSheet(); return; }
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.id === 'say-in'){ e.preventDefault(); e.target.form.requestSubmit(); return; }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role=button][data-a], label[for=photo-in]')){ e.preventDefault(); e.target.click(); }
+});
+document.addEventListener('submit', function(e){
+  var f = e.target.closest('form[data-f]'); if (!f) return;
+  e.preventDefault();
+  var fn = F[f.dataset.f]; if (fn) fn(f);
+});
+document.addEventListener('focusin', function(e){ if (e.target.id === 'bd-total') budgetBase = null; });
+document.addEventListener('input', function(e){
+  var el = e.target;
+  if (el.id === 'q') doSearch(el.value);
+  else if (el.id === 'fd-name'){
+    var form = el.closest('form'); if (!form || form.dataset.id) return;
+    var c = FOODS[el.value.trim()];
+    if (c){ $('#fd-emoji').value = c[0]; $('#fd-unit').value = c[1]; $('#fd-place').value = c[3]; $('#fd-exp').value = addDays(today(), c[2]); $('#fd-hint').textContent = el.value.trim() + '一般' + c[3] + '能放 ' + c[2] + ' 天，到期日已经帮你填好。'; }
+  }
+  else if (el.name === 'cb'){ budgetBase = null; budgetSum(); }
+  else if (el.id === 'bd-total') scaleBudget(num(el.value));
+});
+document.addEventListener('change', function(e){
+  var el = e.target;
+  if (el.id === 'photo-in'){ var files = Array.prototype.slice.call(el.files || []); el.value = ''; if (files.length) recognize(files); return; }
+  if (el.name === 'bcur'){
+    var form = el.closest('form'), from = form.dataset.cur, to = el.value;
+    if (from && from !== to){
+      $$('input[name=cb]', form).concat($$('input[name=saveGoal]', form)).forEach(function(i){ i.value = roundCur(conv(num(i.value), from, to), to); });
+      form.dataset.cur = to; budgetSum();
+    }
+    return;
+  }
+  if (el.name === 'type' && el.closest('form[data-f=ledger]')){
+    view.lgType = el.value;
+    $('#lg-cats').hidden = el.value !== 'out';
+    $('#lg-note').placeholder = el.value === 'in' ? '比如：工资' : el.value === 'save' ? '比如：转入存款' : '比如：超市买菜';
+  }
+  if (el.name === 'cur' && el.closest('form[data-f=ledger]')) view.lgCur = el.value;
+  if (el.name === 'cat' && el.closest('form[data-f=ledger]')) view.lgCat = el.value;
+});
+window.addEventListener('hashchange', function(){ if (handleShot()) return; var h = location.hash.slice(1); if (h && h !== view.tab) setTab(h); });
+function refreshIfNewDay(){ if (view.day !== today()){ view.mealStart = today(); view.mealDay = today(); render(); } }
+window.addEventListener('focus', refreshIfNewDay);
+document.addEventListener('visibilitychange', function(){ if (!document.hidden) refreshIfNewDay(); });
+
+/* ---------------- boot ---------------- */
+S = loadLocal() || sampleState();
+var h0 = location.hash.slice(1);
+if (TABS.some(function(t){ return t[0] === h0; })) view.tab = h0;
+if (!handleShot()) render();
+initCloud();
+initVision();
+})();
+</script>
+<!-- /app:body -->
+<script>if('serviceWorker' in navigator && location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
+</body>
+</html>
