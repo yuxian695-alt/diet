@@ -1705,7 +1705,7 @@ function ocrHtml(txt, open){
 function sheetShotEmpty(){
   openSheet(sheetHead('没收到截图里的文字') + '<p class="lead">手机没从截图里认出任何字，一般是下面两种情况：</p>' +
     '<ol class="steps help"><li><span><b>银行或信用卡 App 不让截图。</b>很多金融 App 为了安全，截图会变成黑屏或白屏。可以自己按「侧边键 + 音量上」截一张看看。<br>这种情况改成在<b>刷卡通知</b>上敲两下：收到通知后下拉通知中心，让那条通知显示出金额，再敲两下背面。银行发来的短信、카카오톡 알림톡 也可以。</span></li>' +
-    '<li><span><b>快捷指令最后一步没接上文字。</b>打开「记一笔」，看「打开 URL」里网址后面有没有插入变量「URL 编码后的文本」。</span></li></ol>' +
+    '<li><span><b>快捷指令没把文字传过来。</b>照「生活账本 → 设置：敲两下手机背面」里的步骤对一下，第 3 步应该是「拷贝到剪贴板」。</span></li></ol>' +
     '<div class="sheet-actions"><button class="btn" data-a="shortcut">看快捷指令步骤</button><button class="btn primary" data-a="close">知道了</button></div>');
 }
 function sheetShotNone(txt){
@@ -1718,16 +1718,32 @@ function sheetShotNone(txt){
 }
 function handleShot(){
   var h = location.hash || '';
-  if (h.indexOf('#shot=') !== 0) return false;
-  var raw = h.slice(6), txt;
-  try { txt = decodeURIComponent(raw); } catch(e){ txt = raw; }
+  var isPaste = h.indexOf('#paste') === 0, isShot = h.indexOf('#shot=') === 0;
+  if (!isPaste && !isShot) return false;
   try { history.replaceState(null, '', location.pathname + location.search + '#ledger'); } catch(e){}
   closeSheet();
   view.tab = 'ledger'; view.month = monthOf(today());
+  if (isPaste){ render(); sheetClip(); return true; }
+  var raw = h.slice(6), txt;
+  try { txt = decodeURIComponent(raw); } catch(e){ txt = raw; }
+  processShotText(txt);
+  return true;
+}
+// 快捷指令把截图里的文字复制好了：点按钮读剪贴板（iPhone 会弹「粘贴」），读不到就长按输入框粘贴
+function sheetClip(){
+  openSheet(sheetHead('读取刚才的截图') +
+    '<p class="lead">快捷指令已经把截图里的文字复制好了。点下面的按钮，再点 iPhone 弹出的「<b>粘贴</b>」，就会自动记账。</p>' +
+    '<button class="btn primary wide big" data-a="clip-read">' + ic('copy') + '读取并记账</button>' +
+    '<p class="hint" style="margin-top:14px">没弹出「粘贴」的话：长按下面的框，选「粘贴」。</p>' +
+    '<textarea id="clip-box" aria-label="粘贴截图里的文字" placeholder="长按这里，选「粘贴」"></textarea>');
+}
+function processShotText(txt){
+  closeSheet();
+  view.tab = 'ledger'; view.month = monthOf(today());
   txt = normalizeOcr(txt);
-  if (txt.replace(/\s/g, '').length < 2){ render(); sheetShotEmpty(); return true; }
+  if (txt.replace(/\s/g, '').length < 2){ render(); sheetShotEmpty(); return; }
   var r = parseShot(txt);
-  if (!r){ render(); sheetShotNone(txt); return true; }
+  if (!r){ render(); sheetShotNone(txt); return; }
   var x = r.item, dup = S.ledger.some(function(z){ return z.type === x.type && z.amount === x.amount && z.cur === x.cur && z.date === x.date; });
   view.month = monthOf(x.date);
   if (r.confident && !dup){
@@ -1743,7 +1759,6 @@ function handleShot(){
     sheetReview([x], dup ? '这笔好像记过了，确认一下' : '没太认准，核对一下', ocrHtml(txt));
     Review.fromShot = true;
   }
-  return true;
 }
 function isStandalone(){ try { return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches; } catch(e){ return false; } }
 function hideTip(k){ try { return localStorage.getItem('chunguo-hide-' + k) === '1'; } catch(e){ return false; } }
@@ -1795,23 +1810,23 @@ function sheetTrash(){
                  : '<div class="empty">最近没有删过东西。</div>'));
 }
 function sheetShortcut(){
-  var u = appUrl() + '#shot=';
+  var u = appUrl() + '#paste';
   openSheet(sheetHead('敲两下背面，自动记账') +
-    '<p class="lead">付完款停在「支付成功」页面或者小票上，敲两下手机背面：自动截图，手机自己认出上面的字，打开生活管家把这笔记好。文字识别在手机上完成，不花钱。</p>' +
+    '<p class="lead">付完款停在付款页面，或者在刷卡通知上，敲两下手机背面：自动截图，手机认出上面的字并复制好，打开生活管家。你再点「读取并记账」和「粘贴」，这笔就记好了。文字识别在手机上完成，不花钱。</p>' +
     (inArtifact() ? '<p class="note">这个功能要用 Safari 打开的生活管家（' + esc(HOME_URL) + '）。claude.ai 里的这个版本收不到快捷指令发来的内容，两边的账也不互通。</p>' : '') +
     '<h4 class="sh-h">第一步：做一个快捷指令（只做一次）</h4><ol class="steps help">' +
     '<li><span>打开「快捷指令」App，点右上角 <b>+</b></span></li>' +
-    '<li><span>在下面的「搜索操作」里搜 <b>截屏</b>，点它添加（有的系统叫「截取屏幕快照」）</span></li>' +
+    '<li><span>在下面的「搜索操作」里搜 <b>截屏</b>，点它添加</span></li>' +
     '<li><span>再搜 <b>提取文本</b>，添加「从图像中提取文本」，它会显示成「从 截屏 中提取文本」</span></li>' +
-    '<li><span>再搜 <b>URL 编码</b> 添加，它会显示成「URL 编码 图像中的文本」</span></li>' +
-    '<li><span>再搜 <b>打开 URL</b> 添加。它会自动填上蓝色的「URL编码后的文本」：<b>点这个蓝色块，选「清除」</b>；然后点空出来的框，粘贴下面这段网址；<b>不要按空格和换行</b>，直接点键盘上方的「URL编码后的文本」。网址和蓝色块要紧挨着，中间不能有空白小格子，不然会报「无法将多信息文本转换为 URL」</span></li></ol>' +
+    '<li><span>再搜 <b>拷贝到剪贴板</b>，点它添加</span></li>' +
+    '<li><span>再搜 <b>打开 URL</b> 添加。如果「打开」后面自动出现了蓝色的块，点它选「清除」。然后点「URL」框，粘贴下面这段网址，<b>粘贴完什么键都别按</b></span></li></ol>' +
     '<div class="copy-row"><code>' + esc(u) + '</code><button class="btn sm" data-a="copy-sc">' + ic('copy') + '复制</button></div>' +
     '<ol class="steps help" style="counter-reset:s 5"><li><span>点最上面的名字，改成 <b>记一笔</b>，点「完成」</span></li></ol>' +
     '<h4 class="sh-h">第二步：绑定敲两下</h4><ol class="steps help"><li><span>打开 <b>设置 → 辅助功能 → 触控 → 轻点背面 → 轻点两下</b>，选 <b>记一笔</b></span></li>' +
     '<li><span>第一次运行时，快捷指令会问能不能打开这个网址，点 <b>允许</b></span></li></ol>' +
     '<h4 class="sh-h">银行 App 截不了图怎么办</h4><p class="hint">很多银行、信用卡 App 不让截图，截出来是黑的。这时在<b>刷卡通知</b>上敲两下：收到通知后下拉通知中心，让那条通知显示出金额，再敲两下背面。银行短信、카카오톡 알림톡 也行。</p>' +
-    '<h4 class="sh-h">用起来是这样</h4><p class="hint">认准了会直接记好，屏幕下面出现「撤销」，记错了点一下就行。没认准、或者看起来记过了，会先让你核对。识别靠的是手机自带的文字识别：付款完成页、带「합계 / 결제금액 / 实付」的小票最准。</p>' +
-    '<p class="hint" style="margin-top:8px">快捷指令会用 Safari 打开生活管家，所以平时也请在 Safari 里用它，账才在一起。加到主屏幕时如果看到「作为 Web App 打开」，把它关掉。</p>' +
+    '<h4 class="sh-h">用起来是这样</h4><p class="hint">认准了会直接记好，屏幕下面出现「撤销」，记错了点一下就行。没认准、或者看起来记过了，会先让你核对。付款完成页、交易详情、刷卡通知、带「합계 / 결제금액 / 实付」的小票最准。</p>' +
+    '<p class="hint" style="margin-top:8px">快捷指令会用 Safari 打开生活管家，所以平时也请在 Safari 里用它，账才在一起。</p>' +
     '<div class="sheet-actions"><button class="btn" data-a="shot-demo">用一张示例试试</button><button class="btn primary" data-a="close">知道了</button></div>');
 }
 
@@ -1928,7 +1943,17 @@ var A = {
   },
   'photo-help': sheetPhotoHelp,
   shortcut: sheetShortcut,
-  'copy-sc': function(){ copyText(appUrl() + '#shot=', '已复制，去快捷指令的「打开 URL」里粘贴'); },
+  'copy-sc': function(){ copyText(appUrl() + '#paste', '已复制，去快捷指令的「打开 URL」里粘贴'); },
+  'clip-read': function(){
+    var box = $('#clip-box');
+    function manual(msg){ toast(msg); if (box) box.focus(); }
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.readText){ manual('长按下面的框，选「粘贴」'); return; }
+      navigator.clipboard.readText().then(function(t){
+        if (t && t.trim()) processShotText(t); else manual('剪贴板是空的，长按下面的框粘贴试试');
+      }, function(){ manual('没读到，长按下面的框，选「粘贴」'); });
+    } catch(e){ manual('长按下面的框，选「粘贴」'); }
+  },
   'shot-demo': function(){ location.hash = 'shot=' + encodeURIComponent('16:54\n결제 완료\n12,500원\nGS25 역삼점\n토스페이\n' + today().replace(/-/g, '.') + ' 14:05'); },
   'say-focus': function(){ var el = $('#say-in'); if (!el) return; el.scrollIntoView({block:'center'}); el.focus({preventScroll:true}); },
   'copy-prompt': function(){ copyText(visionPrompt(), '提示词已复制，去 Claude App 粘贴，再附上截图'); },
@@ -2191,6 +2216,11 @@ document.addEventListener('submit', function(e){
   e.preventDefault();
   Undo.label = UNDO_FORMS[f.dataset.f] || '';
   var fn = F[f.dataset.f]; if (fn) fn(f);
+});
+document.addEventListener('paste', function(e){
+  if (!e.target || e.target.id !== 'clip-box') return;
+  var t = e.clipboardData ? e.clipboardData.getData('text') : '';
+  if (t && t.trim()){ e.preventDefault(); processShotText(t); }
 });
 document.addEventListener('focusin', function(e){ if (e.target.id === 'bd-total') budgetBase = null; });
 document.addEventListener('input', function(e){
