@@ -257,7 +257,11 @@ button.li:hover{background:var(--card2)}
 .seg label:has(input:checked){background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .amount-in{font-size:26px!important;font-weight:800;font-variant-numeric:tabular-nums;min-height:54px!important}
 .day-h{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--mute);font-weight:700;padding:12px 2px 6px}
-.rec{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.rec{display:flex;align-items:center;gap:10px;padding:10px 8px;margin:0 -8px;border-bottom:1px dashed var(--line);border-radius:10px;cursor:pointer}
+.rec:hover{background:var(--card2)}
+.rec-go{color:var(--mute);display:grid;place-items:center;width:24px;flex:none}
+.rec-go svg.ic{width:16px;height:16px}
+.tag-btn{border:0;cursor:pointer;margin-left:6px}
 .rec:last-child{border-bottom:0}
 .rec .tx{flex:1;min-width:0}
 .rec .tx b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
@@ -1054,11 +1058,11 @@ function renderLedger(){
   html += '<div class="tile mint' + (ms.left < 0 ? ' bad' : '') + '"><span>' + (ms.left < 0 ? '已经超出预算' : '可支配预算余额') + (split && ms.mixed ? '（换算成' + CURS[dc].name + '）' : '') + '</span><b>' + fmtC(Math.abs(ms.left), dc) + '</b>' +
     '<div class="chip-row"><button class="rate-chip" data-a="budget">改每月预算' + ic('edit') + '</button><button class="rate-chip" data-a="rate">汇率 ' + rateText() + (S.settings.rateAt ? '' : ' · 默认值，点这里改') + ic('edit') + '</button></div></div>';
   var cats = S.settings.cats.slice(), extra = Object.keys(ms.byCat).filter(function(n){ return !cats.some(function(c){ return c.n === n; }); });
-  extra.forEach(function(n){ cats.push({n:n, b:0}); });
+  extra.forEach(function(n){ cats.push({n:n, b:0, extra:true}); });
   html += '<article class="card"><header class="card-h"><h2>每一份预算，都有去处</h2><button class="btn sm" data-a="budget">调整预算</button></header><div class="cat-bars">' +
     cats.map(function(c, i){
       var b = conv(c.b, S.settings.budgetCur, dc), sp = ms.byCat[c.n] || 0, over = b ? sp > b + 0.004 : sp > 0, w = b ? Math.min(100, sp / b * 100) : (sp ? 100 : 0);
-      return '<div class="cat-bar"><div class="between"><b class="row" style="gap:8px"><span class="dot" style="background:' + CAT_COLORS[i % CAT_COLORS.length] + '"></span>' + esc(c.n) + '</b><span>' + (over && b ? '<span class="over">超出 ' + fmtC(sp - b, dc) + '</span> · ' : '') + fmtC(sp, dc) + ' / ' + fmtC(b, dc) + '</span></div><div class="bar' + (over ? ' bad' : '') + '"><i style="width:' + w.toFixed(1) + '%"></i></div></div>';
+      return '<div class="cat-bar"><div class="between"><b class="row" style="gap:8px"><span class="dot" style="background:' + CAT_COLORS[i % CAT_COLORS.length] + '"></span>' + esc(c.n) + (c.extra ? '<button class="tag warn tag-btn" data-a="move-cat" data-n="' + esc(c.n) + '">不在预算里 · 改到…</button>' : '') + '</b><span>' + (over && b ? '<span class="over">超出 ' + fmtC(sp - b, dc) + '</span> · ' : '') + fmtC(sp, dc) + ' / ' + fmtC(b, dc) + '</span></div><div class="bar' + (over ? ' bad' : '') + '"><i style="width:' + w.toFixed(1) + '%"></i></div></div>';
     }).join('') + '</div>' + (ms.mixed ? '<p class="hint" style="margin-top:12px">两种钱都按 ' + rateText() + ' 换算成' + CURS[dc].name + '再比预算。</p>' : '') + '</article>';
   var spct = ms.saveGoal ? Math.min(100, ms.saved / ms.saveGoal * 100) : 0;
   html += '<article class="card"><header class="card-h"><span class="bubble g">' + ic('leaf') + '</span><h2>储蓄目标</h2><span class="badge">' + spct.toFixed(0) + '%</span></header>' +
@@ -1087,7 +1091,8 @@ function renderLedger(){
   // 明细
   var recs = ms.recs.slice().sort(function(a,b){ return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
   var trashN = S.trash.filter(function(t){ return t.kind === 'ledger'; }).length;
-  html += '<article class="card"><header class="card-h"><h2>这个月的明细</h2><span class="badge">' + recs.length + ' 笔</span>' + (trashN ? '<button class="btn sm" data-a="trash">最近删除 ' + trashN + '</button>' : '') + '</header>';
+  html += '<article class="card"><header class="card-h"><h2>这个月的明细</h2><span class="badge">' + recs.length + ' 笔</span>' + (trashN ? '<button class="btn sm" data-a="trash">最近删除 ' + trashN + '</button>' : '') + '</header>' +
+    (recs.length ? '<p class="hint" style="margin:-6px 0 4px">点一笔账就能修改或删除。</p>' : '');
   if (recs.length){
     var groups = {}, order = [];
     recs.forEach(function(r){ if (!groups[r.date]){ groups[r.date] = []; order.push(r.date); } groups[r.date].push(r); });
@@ -1100,7 +1105,8 @@ function renderLedger(){
         var color = r.type === 'in' ? 'var(--ok)' : r.type === 'save' ? 'var(--c4)' : CAT_COLORS[(ci < 0 ? S.settings.cats.length : ci) % CAT_COLORS.length];
         var lab = r.type === 'in' ? '收入' : r.type === 'save' ? '存钱' : r.cat;
         var approx = !split && r.cur !== dc ? '<small>≈ ' + fmtC(conv(r.amount, r.cur, dc), dc) + '</small>' : '';
-        return '<div class="rec"><span class="dot" style="background:' + color + '"></span><div class="tx"><b>' + esc(r.note || lab) + '</b><small>' + esc(lab) + (r.pay ? ' · ' + PAY_NAME[r.pay] : '') + '</small></div><span class="amt ' + r.type + '">' + (r.type === 'in' ? '+' : r.type === 'save' ? '存 ' : '-') + fmtC(r.amount, r.cur) + approx + '</span><button class="icon-btn sm" data-a="lg-del" data-id="' + r.id + '" aria-label="删除这笔">' + ic('trash') + '</button></div>';
+        var orphan = r.type === 'out' && ci < 0;
+        return '<div class="rec" role="button" tabindex="0" data-a="rec-edit" data-id="' + r.id + '" aria-label="修改：' + esc(r.note || lab) + ' ' + fmtC(r.amount, r.cur) + '"><span class="dot" style="background:' + color + '"></span><div class="tx"><b>' + esc(r.note || lab) + '</b><small>' + esc(lab) + (orphan ? '（不在预算里）' : '') + (r.pay ? ' · ' + PAY_NAME[r.pay] : '') + '</small></div><span class="amt ' + r.type + '">' + (r.type === 'in' ? '+' : r.type === 'save' ? '存 ' : '-') + fmtC(r.amount, r.cur) + approx + '</span><span class="rec-go" aria-hidden="true">' + ic('edit') + '</span></div>';
       }).join('');
     }).join('');
   } else html += '<div class="empty"><b>这个月还没有记账</b>拍一张付款截图，或者说一句「现金 12000韩元 买菜」。</div>';
@@ -1291,7 +1297,7 @@ function sheetFood(id){
 function sheetBudget(){
   var bc = S.settings.budgetCur;
   var rows = S.settings.cats.map(function(c){ return budgetRow(c.n, c.b); }).join('');
-  openSheet(sheetHead('调整每月预算') + '<form class="form" data-f="budget" data-cur="' + bc + '" autocomplete="off"><p class="lead" style="margin:0">每一类每个月打算花多少。改名不会影响已经记过的账。</p>' +
+  openSheet(sheetHead('调整每月预算') + '<form class="form" data-f="budget" data-cur="' + bc + '" autocomplete="off"><p class="lead" style="margin:0">每一类每个月打算花多少。改了名字，记过的账也会跟着改。</p>' +
     '<div class="field"><span>预算用哪种钱</span><div class="seg cur2" style="max-width:280px">' + ['KRW','CNY'].map(function(c){ return '<label><input type="radio" name="bcur" value="' + c + '"' + (bc === c ? ' checked' : '') + '>' + CURS[c].sym + ' ' + CURS[c].name + '</label>'; }).join('') + '</div><span class="hint">切换时，下面的数字会按 ' + rateText() + ' 换算过去。</span></div>' +
     '<label class="field">每月总预算<input type="text" inputmode="decimal" id="bd-total" value="' + S.settings.cats.reduce(function(a,c){ return a + c.b; }, 0) + '"><span class="hint">改总数会按比例分到下面各类，也可以单独改某一类。每个月都用这套预算。</span></label>' +
     '<div id="bd-rows" style="display:grid;gap:8px">' + rows + '</div><div><button type="button" class="btn sm" data-a="bd-add">' + ic('plus') + '加一类</button></div>' +
@@ -1299,7 +1305,7 @@ function sheetBudget(){
     '<p class="hint" id="bd-sum"></p><div class="sheet-actions"><button class="btn primary" type="submit">保存</button></div></form>');
   budgetSum();
 }
-function budgetRow(n, b){ return '<div class="bd-row"><input type="text" name="cn" value="' + esc(n) + '" placeholder="类别" aria-label="类别名" required><input type="number" name="cb" value="' + b + '" min="0" step="any" inputmode="decimal" aria-label="每月预算"><button type="button" class="icon-btn" data-a="bd-del" aria-label="删掉这一类">' + ic('trash') + '</button></div>'; }
+function budgetRow(n, b){ return '<div class="bd-row"><input type="text" name="cn" value="' + esc(n) + '" data-orig="' + esc(n) + '" placeholder="类别" aria-label="类别名" required><input type="number" name="cb" value="' + b + '" min="0" step="any" inputmode="decimal" aria-label="每月预算"><button type="button" class="icon-btn" data-a="bd-del" aria-label="删掉这一类">' + ic('trash') + '</button></div>'; }
 function budgetSum(){
   var el = $('#bd-sum'); if (!el) return;
   var f = el.closest('form'), s = $$('#bd-rows input[name=cb]').reduce(function(a,i){ return a + num(i.value); }, 0), tot = $('#bd-total');
@@ -1388,7 +1394,7 @@ function doSearch(q){
   var td = S.todos.filter(function(x){ return has(x.t); });
   if (td.length) groups.push(['待办', td.slice(0,6).map(function(x){ return '<button class="li" data-a="go" data-tab="todo"><span class="emo">' + (x.done ? '✅' : '⬜') + '</span><span class="tx"><b>' + esc(x.t) + '</b><small>' + md(x.d) + '</small></span></button>'; })]);
   var lg = S.ledger.filter(function(r){ return has(r.note) || has(r.cat); }).sort(function(a,b){ return a.date < b.date ? 1 : -1; });
-  if (lg.length) groups.push(['账目', lg.slice(0,6).map(function(r){ return '<button class="li" data-a="go-month" data-m="' + monthOf(r.date) + '"><span class="emo">' + (r.type === 'in' ? '💰' : r.type === 'save' ? '🐷' : '🧾') + '</span><span class="tx"><b>' + esc(r.note || r.cat) + '</b><small>' + r.date + ' · ' + esc(r.cat) + '</small></span><span class="amt">' + fmtC(r.amount, r.cur) + '</span></button>'; })]);
+  if (lg.length) groups.push(['账目', lg.slice(0,6).map(function(r){ return '<button class="li" data-a="search-rec" data-id="' + r.id + '"><span class="emo">' + (r.type === 'in' ? '💰' : r.type === 'save' ? '🐷' : '🧾') + '</span><span class="tx"><b>' + esc(r.note || r.cat) + '</b><small>' + r.date + ' · ' + esc(r.cat) + '</small></span><span class="amt">' + fmtC(r.amount, r.cur) + '</span></button>'; })]);
   var sh = S.shop.filter(function(x){ return has(x.n); });
   if (sh.length) groups.push(['采购清单', sh.slice(0,6).map(function(x){ return '<button class="li" data-a="go" data-tab="shop"><span class="emo">🛒</span><span class="tx"><b>' + esc(x.n) + '</b><small>' + (x.done ? '已买到' : '待买') + '</small></span></button>'; })]);
   box.innerHTML = groups.length ? groups.map(function(g){ return '<div><h4>' + g[0] + '</h4><div class="list">' + g[1].join('') + '</div></div>'; }).join('') : '<p class="hint">没找到「' + esc(q) + '」相关的内容。</p>';
@@ -1753,6 +1759,29 @@ function sheetStandalone(){
     '<p class="hint">添加时没看到那个开关的话：在「快捷指令」里再做一个只有「打开 URL」（填上面的网址）的快捷指令，点它的「…」→「添加到主屏幕」，用它当桌面图标。</p>' +
     '<div class="sheet-actions"><button class="btn" data-a="copy-url">复制网址</button><button class="btn primary" data-a="bk-copy">复制这里的账</button></div>');
 }
+function sheetRec(id){
+  var r = S.ledger.find(function(x){ return x.id === id; }); if (!r) return;
+  var names = catNames(), orphan = r.type === 'out' && names.indexOf(r.cat) < 0 ? r.cat : '';
+  var chips = (orphan ? [orphan] : []).concat(names).map(function(n){
+    return '<label class="chip"><input type="radio" name="cat" value="' + esc(n) + '"' + (r.cat === n ? ' checked' : '') + '>' + esc(n) + (n === orphan ? '（不在预算里）' : '') + '</label>'; }).join('');
+  openSheet(sheetHead('修改这笔账') + '<form class="form" data-f="rec-edit" data-id="' + r.id + '" autocomplete="off">' +
+    '<div class="seg" role="radiogroup" aria-label="类型">' + [['out','支出'],['in','收入'],['save','存钱']].map(function(o){ return '<label><input type="radio" name="type" value="' + o[0] + '"' + (r.type === o[0] ? ' checked' : '') + '>' + o[1] + '</label>'; }).join('') + '</div>' +
+    '<div class="amt-row"><label class="field">金额<input type="text" inputmode="decimal" name="amount" class="amount-in" value="' + r.amount + '" required></label>' +
+    '<div class="seg cur2" role="radiogroup" aria-label="币种">' + ['KRW','CNY'].map(function(c){ return '<label><input type="radio" name="cur" value="' + c + '"' + (r.cur === c ? ' checked' : '') + '>' + CURS[c].sym + ' ' + CURS[c].name + '</label>'; }).join('') + '</div></div>' +
+    '<div class="field" id="re-cats"' + (r.type === 'out' ? '' : ' hidden') + '><span>花在哪</span><div class="chips">' + chips + '</div></div>' +
+    '<div class="field"><span>怎么付的</span><div class="chips">' + PAYS.map(function(o){ return '<label class="chip"><input type="radio" name="pay" value="' + o[0] + '"' + ((r.pay || '') === o[0] ? ' checked' : '') + '>' + o[1] + '</label>'; }).join('') + '</div></div>' +
+    '<div class="grid2"><label class="field">备注<input type="text" name="note" value="' + esc(r.note) + '"></label><label class="field">日期<input type="date" name="date" value="' + r.date + '" required></label></div>' +
+    '<div class="sheet-actions"><button type="button" class="btn danger" data-a="lg-del" data-id="' + r.id + '">' + ic('trash') + '删除</button><button class="btn primary" type="submit">' + ic('check') + '保存</button></div></form>');
+}
+function sheetMoveCat(from){
+  var n = S.ledger.filter(function(r){ return r.type === 'out' && r.cat === from; }).length, names = catNames();
+  var guess = names.filter(function(c){ return c.indexOf(from) >= 0 || from.indexOf(c) >= 0; })[0] || guessCat(from);
+  openSheet(sheetHead('「' + esc(from) + '」不在预算里') +
+    '<p class="lead">有 ' + n + ' 笔账记在「' + esc(from) + '」下面，可是预算里没有这一类，所以多出来一行。把它们改到预算里的一类：</p>' +
+    '<form class="form" data-f="move-cat" data-from="' + esc(from) + '"><div class="chips">' + names.map(function(c){ return '<label class="chip"><input type="radio" name="to" value="' + esc(c) + '"' + (c === guess ? ' checked' : '') + '>' + esc(c) + '</label>'; }).join('') + '</div>' +
+    '<p class="hint">也可以把「' + esc(from) + '」加进预算，单独算一类。</p>' +
+    '<div class="sheet-actions"><button type="button" class="btn" data-a="add-cat" data-n="' + esc(from) + '">加进预算</button><button class="btn primary" type="submit">改过去</button></div></form>');
+}
 function sheetTrash(){
   var list = S.trash.slice();
   function desc(t){
@@ -1865,10 +1894,18 @@ var A = {
   'lg-del': function(el){ arm(el, function(){
     var r = S.ledger.find(function(x){ return x.id === el.dataset.id; }); if (!r) return;
     var name = r.note || r.cat; S.ledger = S.ledger.filter(function(x){ return x !== r; }); var tid = toTrash('ledger', r);
-    Undo.label = '删除「' + name + '」'; commit('ledger');
+    Undo.label = '删除「' + name + '」'; closeSheet(); commit('ledger');
     toast('删掉了「' + name + '」', function(){ if (restoreTrash(tid)) toast('恢复了'); });
   }); },
   undo: doUndo,
+  'rec-edit': function(el){ sheetRec(el.dataset.id); },
+  'search-rec': function(el){ var r = S.ledger.find(function(x){ return x.id === el.dataset.id; }); if (!r) return; view.month = monthOf(r.date); go('ledger'); sheetRec(r.id); },
+  'move-cat': function(el){ sheetMoveCat(el.dataset.n); },
+  'add-cat': function(el){
+    var n = el.dataset.n;
+    if (!S.settings.cats.some(function(c){ return c.n === n; })) S.settings.cats.push({n:n, b:0});
+    Undo.label = '把「' + n + '」加进预算'; closeSheet(); commit('settings'); toast('「' + n + '」加进预算了，在「调整预算」里填个金额');
+  },
   trash: sheetTrash,
   restore: function(el){ if (restoreTrash(el.dataset.id)){ toast('恢复了'); sheetTrash(); } },
   'copy-ocr': function(){ var el = $('#ocr-text'); if (el) copyText(el.textContent, '已复制，可以发给 Claude 看看'); },
@@ -2054,11 +2091,34 @@ var F = {
     closeSheet(); commit('fridge'); toast(id ? '改好了' : name + ' 放进冰箱了');
   },
   budget: function(f){
-    var rows = $$('.bd-row', f).map(function(r){ return {n:$('input[name=cn]', r).value.trim(), b:r2(num($('input[name=cb]', r).value))}; }).filter(function(c){ return c.n; });
+    var rows = $$('.bd-row', f).map(function(r){ var i = $('input[name=cn]', r); return {n:i.value.trim(), b:r2(num($('input[name=cb]', r).value)), orig:i.dataset.orig || ''}; }).filter(function(c){ return c.n; });
     if (!rows.length){ toast('至少留一个类别'); return; }
-    S.settings.cats = rows; S.settings.saveGoal = r2(num(new FormData(f).get('saveGoal'))); S.settings.budgetCur = new FormData(f).get('bcur') === 'CNY' ? 'CNY' : 'KRW';
+    var ren = {}, nRen = 0;
+    rows.forEach(function(c){ if (c.orig && c.orig !== c.n) ren[c.orig] = c.n; });
+    S.ledger.forEach(function(r){ if (r.type === 'out' && ren.hasOwnProperty(r.cat)){ r.cat = ren[r.cat]; nRen++; } });
+    S.settings.cats = rows.map(function(c){ return {n:c.n, b:c.b}; });
+    S.settings.saveGoal = r2(num(new FormData(f).get('saveGoal'))); S.settings.budgetCur = new FormData(f).get('bcur') === 'CNY' ? 'CNY' : 'KRW';
+    if (view.lgCat && ren[view.lgCat]) view.lgCat = ren[view.lgCat];
     if (view.lgCat && !rows.some(function(c){ return c.n === view.lgCat; })) view.lgCat = null;
-    closeSheet(); commit('settings'); toast('预算改好了');
+    closeSheet(); commit('settings', 'ledger'); toast('预算改好了' + (nRen ? '，' + nRen + ' 笔账跟着改了类别名' : ''));
+  },
+  'rec-edit': function(f){
+    var r = S.ledger.find(function(x){ return x.id === f.dataset.id; }); if (!r){ closeSheet(); return; }
+    var fd = new FormData(f), type = fd.get('type') || 'out', cur = fd.get('cur') === 'CNY' ? 'CNY' : 'KRW', amount = amountOf(fd.get('amount'), cur);
+    if (!(amount > 0)){ toast('金额要大于 0'); return; }
+    var names = catNames();
+    r.type = type; r.cur = cur; r.amount = amount;
+    r.cat = type === 'out' ? (fd.get('cat') || (names.indexOf(r.cat) >= 0 ? r.cat : guessCat(r.note || ''))) : type === 'in' ? '收入' : '储蓄';
+    r.pay = fd.get('pay') || ''; r.note = String(fd.get('note') || '').trim(); r.date = fd.get('date') || r.date;
+    Undo.label = '修改「' + (r.note || r.cat) + '」'; view.month = monthOf(r.date);
+    closeSheet(); commit('ledger'); toast('改好了');
+  },
+  'move-cat': function(f){
+    var from = f.dataset.from, to = new FormData(f).get('to');
+    if (!to){ toast('先选一类'); return; }
+    var n = 0; S.ledger.forEach(function(r){ if (r.type === 'out' && r.cat === from){ r.cat = to; n++; } });
+    Undo.label = '把「' + from + '」改到「' + to + '」'; closeSheet(); commit('ledger');
+    toast(n + ' 笔账改到了「' + to + '」');
   },
   gen: function(f){
     var fd = new FormData(f), slots = fd.getAll('slots'), tags = fd.getAll('tags'), maxTime = +fd.get('maxTime') || 20;
@@ -2161,6 +2221,7 @@ document.addEventListener('change', function(e){
     $('#lg-note').placeholder = el.value === 'in' ? '比如：工资' : el.value === 'save' ? '比如：转入存款' : '比如：超市买菜';
   }
   if (el.name === 'cur' && el.closest('form[data-f=ledger]')) view.lgCur = el.value;
+  if (el.name === 'type' && el.closest('form[data-f=rec-edit]')){ var rc = $('#re-cats'); if (rc) rc.hidden = el.value !== 'out'; }
   if (el.name === 'cat' && el.closest('form[data-f=ledger]')) view.lgCat = el.value;
 });
 window.addEventListener('hashchange', function(){ if (handleShot()) return; var h = location.hash.slice(1); if (h && h !== view.tab) setTab(h); });
